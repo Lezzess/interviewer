@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:interviewer/pages/my_questions.dart';
-import 'package:interviewer/states/app_state.dart';
+import 'package:interviewer/pages/my_questions/my_questions.dart';
+import 'package:interviewer/app/app_state.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -26,20 +26,20 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: const ColorScheme(
-              brightness: Brightness.light,
-              primary: black,
-              onPrimary: white,
-              secondary: red,
-              onSecondary: white,
-              error: red,
-              onError: white,
-              background: white,
-              onBackground: black,
-              surface: white,
-              onSurface: black),
-          primarySwatch: Colors.blue,
-        ),
+            colorScheme: const ColorScheme(
+                brightness: Brightness.light,
+                primary: black,
+                onPrimary: white,
+                secondary: red,
+                onSecondary: white,
+                error: red,
+                onError: white,
+                background: white,
+                onBackground: black,
+                surface: white,
+                onSurface: black),
+            primarySwatch: Colors.blue,
+            toggleableActiveColor: red),
         home: const MyQuestions(),
       ),
     );
