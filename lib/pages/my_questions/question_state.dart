@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:interviewer/models/answers/value_answer.dart';
+import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/question.dart';
 
 class QuestionState with ChangeNotifier {
@@ -9,12 +9,13 @@ class QuestionState with ChangeNotifier {
 
   void setAnswerSelected(
       SelectValueAnswer answer, SelectValue value, bool isSelected) {
+    final answer = question.answer as SelectValueAnswer;
     if (answer.isMultipleSelect) {
-      question.answer.values = question.answer.values
+      answer.values = answer.values
           .map((a) => a.id == value.id ? a.copyWith(isSelected: isSelected) : a)
           .toList();
     } else {
-      question.answer.values = question.answer.values
+      answer.values = answer.values
           .map((a) => a.id == value.id
               ? a.copyWith(isSelected: isSelected)
               : a.id != value.id && a.isSelected

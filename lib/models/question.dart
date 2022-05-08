@@ -1,9 +1,9 @@
-import 'package:interviewer/models/answers/value_answer.dart';
+import 'package:interviewer/models/answers/answer.dart';
 
 class Question {
   String id;
   String text;
-  SelectValueAnswer answer;
+  Answer answer;
 
   Question({required this.id, required this.text, required this.answer});
 }

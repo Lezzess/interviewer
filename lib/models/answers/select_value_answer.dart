@@ -1,4 +1,6 @@
-class SelectValueAnswer {
+import 'package:interviewer/models/answers/answer.dart';
+
+class SelectValueAnswer extends Answer {
   String id;
   List<SelectValue> values;
   bool isMultipleSelect;
