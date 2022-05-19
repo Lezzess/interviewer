@@ -1,45 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:interviewer/models/answers/input_number_answer.dart';
-import 'package:interviewer/models/answers/input_text_answer.dart';
 
-class MyInputNumberAnswer extends StatelessWidget {
-  final InputNumberAnswer answer;
-
-  const MyInputNumberAnswer({Key? key, required this.answer}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        width: 200,
-        child: const MyTextField(
-          type: MyTextFieldType.number,
-        ),
-      ),
-    );
-  }
-}
-
-class MyInputTextAnswer extends StatelessWidget {
-  final InputTextAnswer answer;
-
-  const MyInputTextAnswer({Key? key, required this.answer}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: const MyTextField(type: MyTextFieldType.text),
-    );
-  }
-}
+typedef OnTextChanged = void Function(String newValue);
 
 class MyTextField extends StatelessWidget {
   final MyTextFieldType type;
+  final TextEditingController? controller;
+  final OnTextChanged? onChanged;
 
-  const MyTextField({Key? key, required this.type}) : super(key: key);
+  const MyTextField(
+      {Key? key, required this.type, this.controller, this.onChanged})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +23,8 @@ class MyTextField extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: TextField(
+        controller: controller,
+        onChanged: onChanged,
         maxLines: maxLines,
         textAlign: TextAlign.left,
         style: TextStyle(color: Theme.of(context).colorScheme.secondary),

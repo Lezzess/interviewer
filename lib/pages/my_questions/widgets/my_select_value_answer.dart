@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:collection/collection.dart';
 
+typedef OnAnswerSelected = void Function(
+    SelectValueAnswer answer, SelectValue value, bool isSelected);
+
 class MySelectValueAnswer extends StatelessWidget {
   final SelectValueAnswer answer;
-  final Function(SelectValueAnswer answer, SelectValue value, bool isSelected)
-      onChanged;
+  final OnAnswerSelected onChanged;
 
   const MySelectValueAnswer(
       {Key? key, required this.answer, required this.onChanged})
