@@ -18,13 +18,14 @@ class MyTextField extends StatelessWidget {
         : TextInputType.text;
     final hintText =
         type == MyTextFieldType.number ? "Type in number" : "Type in text";
-    final maxLines = type == MyTextFieldType.number ? null : 1;
+    final maxLines = type == MyTextFieldType.number ? 1 : 5;
 
     return Align(
       alignment: Alignment.centerLeft,
       child: TextField(
         controller: controller,
         onChanged: onChanged,
+        minLines: 1,
         maxLines: maxLines,
         textAlign: TextAlign.left,
         style: TextStyle(color: Theme.of(context).colorScheme.secondary),

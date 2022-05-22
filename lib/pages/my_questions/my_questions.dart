@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:interviewer/app/app_reducers.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
-import 'package:interviewer/app/app_state.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.dart';
 import 'package:interviewer/app/app_styles.dart';
+import 'package:interviewer/redux/app_state.dart';
+import 'package:interviewer/redux/questions/answers/set_input_number_value.dart';
+import 'package:interviewer/redux/questions/answers/set_select_answer_value.dart';
 
 class MyQuestions extends StatelessWidget {
   const MyQuestions({Key? key}) : super(key: key);
@@ -84,16 +85,19 @@ class _MyQuestion extends StatelessWidget {
     if (answer is SelectValueAnswer) {
       return StoreConnector<AppState, OnAnswerSelected>(
         converter: (store) => (answer, value, isSelected) => store.dispatch(
-            SetAnswerValueAction(question, answer, value, isSelected)),
+            SetSelectAnswerValueAction(question, answer, value, isSelected)),
         builder: (context, callback) =>
             MySelectValueAnswer(answer: answer, onChanged: callback),
       );
     } else if (answer is InputNumberAnswer) {
-      return MyInputNumberAnswer(
-        answer: answer,
-        onNumberChanged: (answer, newValue) =>
-            print('Changed number to ${newValue.toString()}'),
-        debounceTime: 500,
+      return StoreConnector<AppState, OnNumberChanged>(
+        converter: (store) => (answer, newValue) => store
+            .dispatch(SetInputNumberValueAction(question, answer, newValue)),
+        builder: (context, callback) => MyInputNumberAnswer(
+          answer: answer,
+          onNumberChanged: callback,
+          debounceTime: 500,
+        ),
       );
     } else if (answer is InputTextAnswer) {
       return MyInputTextAnswer(

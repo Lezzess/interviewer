@@ -2,11 +2,11 @@ import 'package:interviewer/models/answers/answer.dart';
 
 class InputNumberAnswer extends Answer {
   String id;
-  InputNumberType type;
   double value;
 
-  InputNumberAnswer(
-      {required this.id, required this.type, required this.value});
-}
+  InputNumberAnswer({required this.id, required this.value});
 
-enum InputNumberType { integer, double }
+  InputNumberAnswer copyWith({String? id, double? value}) {
+    return InputNumberAnswer(id: id ?? this.id, value: value ?? this.value);
+  }
+}

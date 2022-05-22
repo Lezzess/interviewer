@@ -34,6 +34,7 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
     _textController = TextEditingController(text: doubleString);
     _subject = BehaviorSubject<double>.seeded(widget.answer.value);
     _subject?.stream
+        .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
         .listen((value) => widget.onNumberChanged(widget.answer, value));

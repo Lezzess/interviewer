@@ -31,6 +31,7 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
     _textController = TextEditingController(text: widget.answer.text);
     _subject = BehaviorSubject<String>.seeded(widget.answer.text);
     _subject?.stream
+        .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
         .listen((value) => widget.onTextChanged(widget.answer, value));

@@ -5,9 +5,9 @@ import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_questions/my_questions.dart';
-import 'package:interviewer/app/app_state.dart';
+import 'package:interviewer/redux/app_reducers.dart';
+import 'package:interviewer/redux/app_state.dart';
 import 'package:redux/redux.dart';
-import 'package:interviewer/app/app_reducers.dart';
 import 'package:uuid/uuid.dart';
 
 List<Question> questionsMock = <Question>[
@@ -48,8 +48,7 @@ List<Question> questionsMock = <Question>[
   Question(
       id: const Uuid().v4(),
       text: 'Forth',
-      answer: InputNumberAnswer(
-          id: const Uuid().v4(), type: InputNumberType.integer, value: 8.25)),
+      answer: InputNumberAnswer(id: const Uuid().v4(), value: 8.25)),
   Question(
       id: const Uuid().v4(),
       text: 'Fifth',

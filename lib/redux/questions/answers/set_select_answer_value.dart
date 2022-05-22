@@ -1,17 +1,19 @@
-import 'package:interviewer/app/app_state.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/question.dart';
+import 'package:interviewer/utils/extensions/list_extensions.dart';
 
-AppState appReducer(AppState state, dynamic action) {
-  if (action is SetAnswerValueAction) {
-    return setAnswerValue(state, action);
-  }
+class SetSelectAnswerValueAction {
+  Question question;
+  SelectValueAnswer answer;
+  SelectValue value;
+  bool isSelected;
 
-  return state;
+  SetSelectAnswerValueAction(
+      this.question, this.answer, this.value, this.isSelected);
 }
 
-AppState setAnswerValue(AppState state, SetAnswerValueAction action) {
-  final questions = state.questions;
+List<Question> setSelectAnswerValue(
+    List<Question> questions, SetSelectAnswerValueAction action) {
   final question = questions.firstWhere((q) => q == action.question);
   final answer = question.answer as SelectValueAnswer;
   final values = answer.values;
@@ -29,17 +31,7 @@ AppState setAnswerValue(AppState state, SetAnswerValueAction action) {
   }).toList();
   final newAnswer = answer.copyWith(values: newValues);
   final newQuestion = question.copyWith(answer: newAnswer);
-  final newQuestions =
-      questions.map((q) => q == action.question ? newQuestion : q).toList();
+  final newQuestions = questions.replace(question, newQuestion);
 
-  return state.copyWith(questions: newQuestions);
-}
-
-class SetAnswerValueAction {
-  Question question;
-  SelectValueAnswer answer;
-  SelectValue value;
-  bool isSelected;
-
-  SetAnswerValueAction(this.question, this.answer, this.value, this.isSelected);
+  return newQuestions;
 }
