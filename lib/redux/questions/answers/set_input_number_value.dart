@@ -17,7 +17,7 @@ List<Question> setInputNumberValue(
 
   final newAnswer = answer.copyWith(value: action.value);
   final newQuestion = question.copyWith(answer: newAnswer);
-  final newQuestions = questions.replace(question, newQuestion);
+  final newQuestions = questions.ireplace(question, newQuestion);
 
   return newQuestions;
 }

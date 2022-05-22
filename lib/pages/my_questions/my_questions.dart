@@ -7,11 +7,12 @@ import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.dart';
-import 'package:interviewer/app/app_styles.dart';
 import 'package:interviewer/redux/app_state.dart';
 import 'package:interviewer/redux/questions/answers/set_input_number_value.dart';
 import 'package:interviewer/redux/questions/answers/set_input_text_value.dart';
 import 'package:interviewer/redux/questions/answers/set_select_answer_value.dart';
+import 'package:interviewer/redux/questions/questions_selectors.dart';
+import 'package:interviewer/styles/app_styles.dart';
 
 class MyQuestions extends StatelessWidget {
   const MyQuestions({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class MyQuestions extends StatelessWidget {
         title: const Text('Questions'),
       ),
       body: StoreConnector<AppState, List<Question>>(
-        converter: (store) => store.state.questions,
+        converter: selectAllQuestions,
         builder: (context, questions) => ListView.builder(
             shrinkWrap: true,
             // One more item for empty box in the bottom
