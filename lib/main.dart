@@ -51,6 +51,10 @@ List<Question> questionsMock = <Question>[
       answer: InputNumberAnswer(id: const Uuid().v4(), value: 8.25)),
   Question(
       id: const Uuid().v4(),
+      text: 'Forth.One',
+      answer: InputNumberAnswer(id: const Uuid().v4(), value: null)),
+  Question(
+      id: const Uuid().v4(),
       text: 'Fifth',
       answer: InputTextAnswer(
           id: const Uuid().v4(), text: 'Some text in this answer')),

@@ -5,7 +5,7 @@ import 'package:interviewer/utils/doubles.dart';
 import 'package:rxdart/rxdart.dart';
 
 typedef OnNumberChanged = void Function(
-    InputNumberAnswer answer, double newNumber);
+    InputNumberAnswer answer, double? newNumber);
 
 class MyInputNumberAnswer extends StatefulWidget {
   final InputNumberAnswer answer;
@@ -25,14 +25,15 @@ class MyInputNumberAnswer extends StatefulWidget {
 
 class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
   TextEditingController? _textController;
-  BehaviorSubject<double>? _subject;
+  BehaviorSubject<double?>? _subject;
 
   @override
   void initState() {
     super.initState();
-    final doubleString = trimTrailingZeroes(widget.answer.value.toString());
+    final doubleString =
+        trimTrailingZeroes(widget.answer.value?.toString() ?? "");
     _textController = TextEditingController(text: doubleString);
-    _subject = BehaviorSubject<double>.seeded(widget.answer.value);
+    _subject = BehaviorSubject<double?>.seeded(widget.answer.value);
     _subject?.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
@@ -63,6 +64,10 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
   }
 
   void _onNumberChanged(String newValue) {
+    if (newValue.trim() == "") {
+      _subject?.add(null);
+    }
+
     var newValueDouble = double.tryParse(newValue);
     if (newValueDouble != null) {
       _subject?.add(newValueDouble);

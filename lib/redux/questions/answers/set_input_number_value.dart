@@ -5,7 +5,7 @@ import 'package:interviewer/utils/extensions/list_extensions.dart';
 class SetInputNumberValueAction {
   Question question;
   InputNumberAnswer answer;
-  double value;
+  double? value;
 
   SetInputNumberValueAction(this.question, this.answer, this.value);
 }

@@ -2,7 +2,7 @@ import 'package:interviewer/models/answers/answer.dart';
 
 class InputNumberAnswer extends Answer {
   String id;
-  double value;
+  double? value;
 
   InputNumberAnswer({required this.id, required this.value});
 
