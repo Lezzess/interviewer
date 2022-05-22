@@ -10,6 +10,7 @@ import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.da
 import 'package:interviewer/app/app_styles.dart';
 import 'package:interviewer/redux/app_state.dart';
 import 'package:interviewer/redux/questions/answers/set_input_number_value.dart';
+import 'package:interviewer/redux/questions/answers/set_input_text_value.dart';
 import 'package:interviewer/redux/questions/answers/set_select_answer_value.dart';
 
 class MyQuestions extends StatelessWidget {
@@ -100,11 +101,14 @@ class _MyQuestion extends StatelessWidget {
         ),
       );
     } else if (answer is InputTextAnswer) {
-      return MyInputTextAnswer(
-        answer: answer,
-        onTextChanged: (answer, newText) =>
-            print('Changed text to ${newText.toString()}'),
-        debounceTime: 500,
+      return StoreConnector<AppState, OnTextChanged>(
+        converter: (store) => (answer, newText) =>
+            store.dispatch(SetInputTextValueAction(question, answer, newText)),
+        builder: (context, callback) => MyInputTextAnswer(
+          answer: answer,
+          onTextChanged: callback,
+          debounceTime: 500,
+        ),
       );
     }
 

@@ -64,7 +64,9 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
   }
 
   void _onNumberChanged(String newValue) {
-    if (newValue.trim() == "") {
+    newValue = newValue.trim();
+
+    if (newValue == "") {
       _subject?.add(null);
     }
 
