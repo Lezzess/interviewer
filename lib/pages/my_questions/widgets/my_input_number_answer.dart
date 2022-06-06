@@ -13,19 +13,18 @@ class MyInputNumberAnswer extends StatefulWidget {
   final int debounceTime;
 
   const MyInputNumberAnswer(
-      {Key? key,
+      {super.key,
       required this.answer,
       required this.onNumberChanged,
-      this.debounceTime = 500})
-      : super(key: key);
+      this.debounceTime = 500});
 
   @override
   State<MyInputNumberAnswer> createState() => _MyInputNumberAnswerState();
 }
 
 class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
-  TextEditingController? _textController;
-  BehaviorSubject<double?>? _subject;
+  late TextEditingController _textController;
+  late BehaviorSubject<double?> _subject;
 
   @override
   void initState() {
@@ -34,7 +33,7 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
         trimTrailingZeroes(widget.answer.value?.toString() ?? "");
     _textController = TextEditingController(text: doubleString);
     _subject = BehaviorSubject<double?>.seeded(widget.answer.value);
-    _subject?.stream
+    _subject.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
@@ -43,7 +42,7 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
 
   @override
   void dispose() {
-    _textController?.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -67,12 +66,12 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
     newValue = newValue.trim();
 
     if (newValue == "") {
-      _subject?.add(null);
+      _subject.add(null);
     }
 
     var newValueDouble = double.tryParse(newValue);
     if (newValueDouble != null) {
-      _subject?.add(newValueDouble);
+      _subject.add(newValueDouble);
     }
   }
 }

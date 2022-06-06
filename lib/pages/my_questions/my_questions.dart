@@ -7,6 +7,7 @@ import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.dart';
+import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/redux/app_state.dart';
 import 'package:interviewer/redux/questions/answers/set_input_number_value.dart';
 import 'package:interviewer/redux/questions/answers/set_input_text_value.dart';
@@ -15,7 +16,7 @@ import 'package:interviewer/redux/questions/questions_selectors.dart';
 import 'package:interviewer/styles/app_styles.dart';
 
 class MyQuestions extends StatelessWidget {
-  const MyQuestions({Key? key}) : super(key: key);
+  const MyQuestions({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,7 @@ class MyQuestions extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () => _goToAddQuestion(context),
       ),
     );
   }
@@ -48,12 +49,16 @@ class MyQuestions extends StatelessWidget {
             height: 80,
           );
   }
+
+  void _goToAddQuestion(BuildContext context) {
+    Navigator.pushNamed(context, Routes.addQuestion);
+  }
 }
 
 class _MyQuestion extends StatelessWidget {
   final Question question;
 
-  const _MyQuestion({Key? key, required this.question}) : super(key: key);
+  const _MyQuestion({super.key, required this.question});
 
   @override
   Widget build(BuildContext context) {

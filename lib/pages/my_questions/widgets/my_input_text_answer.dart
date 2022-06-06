@@ -11,26 +11,25 @@ class MyInputTextAnswer extends StatefulWidget {
   final int debounceTime;
 
   const MyInputTextAnswer(
-      {Key? key,
+      {super.key,
       required this.answer,
       required this.onTextChanged,
-      this.debounceTime = 500})
-      : super(key: key);
+      this.debounceTime = 500});
 
   @override
   State<MyInputTextAnswer> createState() => _MyInputTextAnswerState();
 }
 
 class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
-  TextEditingController? _textController;
-  BehaviorSubject<String>? _subject;
+  late TextEditingController _textController;
+  late BehaviorSubject<String> _subject;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.answer.text);
     _subject = BehaviorSubject<String>.seeded(widget.answer.text);
-    _subject?.stream
+    _subject.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
@@ -39,7 +38,7 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
 
   @override
   void dispose() {
-    _textController?.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -55,6 +54,6 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
   }
 
   void _onTextChanged(String newValue) {
-    _subject?.add(newValue.trim());
+    _subject.add(newValue.trim());
   }
 }

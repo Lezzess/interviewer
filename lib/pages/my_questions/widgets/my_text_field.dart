@@ -8,8 +8,7 @@ class MyTextField extends StatelessWidget {
   final OnTextChanged? onChanged;
 
   const MyTextField(
-      {Key? key, required this.type, this.controller, this.onChanged})
-      : super(key: key);
+      {super.key, required this.type, this.controller, this.onChanged});
 
   @override
   Widget build(BuildContext context) {

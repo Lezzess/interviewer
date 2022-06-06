@@ -10,8 +10,7 @@ class MySelectValueAnswer extends StatelessWidget {
   final OnAnswerSelected onChanged;
 
   const MySelectValueAnswer(
-      {Key? key, required this.answer, required this.onChanged})
-      : super(key: key);
+      {super.key, required this.answer, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
