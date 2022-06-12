@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
-typedef OnValueChanged = void Function(String? newValue);
+typedef OnValueChanged<T> = void Function(T? newValue);
+typedef ToStringConverter<T> = String Function(T value);
 
-class MyDropdown extends StatelessWidget {
-  final List<String> values;
-  final String? selectedValue;
-  final OnValueChanged onValueChanged;
+class MyDropdown<T> extends StatelessWidget {
+  final List<T> values;
+  final T? selectedValue;
+  final OnValueChanged<T> onValueChanged;
+  final ToStringConverter<T>? toStringConverter;
 
   const MyDropdown(
       {super.key,
       required this.values,
       required this.selectedValue,
-      required this.onValueChanged});
+      required this.onValueChanged,
+      this.toStringConverter});
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +33,20 @@ class MyDropdown extends StatelessWidget {
                   data: Theme.of(context).copyWith(
                       splashColor: Colors.transparent,
                       highlightColor: Colors.transparent),
-                  child: DropdownButton<String>(
+                  child: DropdownButton<T>(
                       value: selectedValue,
                       isDense: true,
-                      items: values
-                          .map((e) => DropdownMenuItem<String>(
-                              value: e, child: Text(e)))
-                          .toList(),
+                      items: values.map(_dropdownMenuItem).toList(),
                       onChanged: onValueChanged),
                 ),
               ),
             ));
+  }
+
+  DropdownMenuItem<T> _dropdownMenuItem(T value) {
+    final stringValue = toStringConverter != null
+        ? toStringConverter!(value)
+        : value.toString();
+    return DropdownMenuItem(value: value, child: Text(stringValue));
   }
 }

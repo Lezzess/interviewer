@@ -6,15 +6,19 @@ import 'package:rxdart/rxdart.dart';
 typedef OnTextChanged = void Function(InputTextAnswer answer, String newText);
 
 class MyInputTextAnswer extends StatefulWidget {
-  final InputTextAnswer answer;
-  final OnTextChanged onTextChanged;
+  final InputTextAnswer? answer;
+  final OnTextChanged? onTextChanged;
   final int debounceTime;
+  final bool enabled;
 
   const MyInputTextAnswer(
       {super.key,
-      required this.answer,
-      required this.onTextChanged,
-      this.debounceTime = 500});
+      this.answer,
+      this.onTextChanged,
+      this.debounceTime = 500,
+      this.enabled = true})
+      : assert(!enabled || enabled && answer != null,
+            'If input text field is enabled, it should have answer != null');
 
   @override
   State<MyInputTextAnswer> createState() => _MyInputTextAnswerState();
@@ -27,13 +31,13 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.answer.text);
-    _subject = BehaviorSubject<String>.seeded(widget.answer.text);
+    _textController = TextEditingController(text: widget.answer?.text);
+    _subject = BehaviorSubject<String>.seeded(widget.answer?.text ?? '');
     _subject.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
-        .listen((value) => widget.onTextChanged(widget.answer, value));
+        .listen((value) => widget.onTextChanged?.call(widget.answer!, value));
   }
 
   @override
@@ -44,13 +48,11 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      child: MyTextField(
-          type: MyTextFieldType.text,
-          controller: _textController,
-          onChanged: _onTextChanged),
-    );
+    return MyTextField(
+        enabled: widget.enabled,
+        type: MyTextFieldType.text,
+        controller: _textController,
+        onChanged: _onTextChanged);
   }
 
   void _onTextChanged(String newValue) {

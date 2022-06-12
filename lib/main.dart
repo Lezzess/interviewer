@@ -93,9 +93,10 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData(
             useMaterial3: true,
-            colorScheme: const ColorScheme.dark(
-              secondary: red,
-            ),
+            colorScheme: ColorScheme.fromSwatch().copyWith(secondary: red),
+            // colorScheme: const ColorScheme.light(
+            // secondary: red,
+            // ),
             // colorScheme: const ColorScheme(
             //     brightness: Brightness.dark,
             //     primary: black,
@@ -110,12 +111,26 @@ class MyApp extends StatelessWidget {
             //     onSurface: black),
             primarySwatch: Colors.blue,
             toggleableActiveColor: red),
-        initialRoute: '/questions',
-        routes: {
-          Routes.questions: (context) => const MyQuestions(),
-          Routes.addQuestion: (context) => const MyAddEditQuestion()
-        },
+        initialRoute: Routes.questions,
+        onGenerateRoute: _onGenerateRoute,
       ),
     );
+  }
+
+  Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+    Widget Function(BuildContext) builder;
+
+    switch (settings.name) {
+      case Routes.questions:
+        builder = (ctx) => const MyQuestions();
+        break;
+      case Routes.addQuestion:
+        builder = (ctx) => const MyAddEditQuestion();
+        break;
+      default:
+        return null;
+    }
+
+    return MaterialPageRoute(builder: builder, settings: settings);
   }
 }

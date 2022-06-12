@@ -8,15 +8,19 @@ typedef OnNumberChanged = void Function(
     InputNumberAnswer answer, double? newNumber);
 
 class MyInputNumberAnswer extends StatefulWidget {
-  final InputNumberAnswer answer;
-  final OnNumberChanged onNumberChanged;
+  final InputNumberAnswer? answer;
+  final OnNumberChanged? onNumberChanged;
   final int debounceTime;
+  final bool enabled;
 
   const MyInputNumberAnswer(
       {super.key,
-      required this.answer,
-      required this.onNumberChanged,
-      this.debounceTime = 500});
+      this.answer,
+      this.onNumberChanged,
+      this.debounceTime = 500,
+      this.enabled = true})
+      : assert(!enabled || enabled && answer != null,
+            'If input number field is enabled, it should have answer != null');
 
   @override
   State<MyInputNumberAnswer> createState() => _MyInputNumberAnswerState();
@@ -30,14 +34,14 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
   void initState() {
     super.initState();
     final doubleString =
-        trimTrailingZeroes(widget.answer.value?.toString() ?? "");
+        trimTrailingZeroes(widget.answer?.value?.toString() ?? "");
     _textController = TextEditingController(text: doubleString);
-    _subject = BehaviorSubject<double?>.seeded(widget.answer.value);
+    _subject = BehaviorSubject<double?>.seeded(widget.answer?.value);
     _subject.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
-        .listen((value) => widget.onNumberChanged(widget.answer, value));
+        .listen((value) => widget.onNumberChanged?.call(widget.answer!, value));
   }
 
   @override
@@ -48,16 +52,13 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15),
-        width: 200,
-        child: MyTextField(
-          type: MyTextFieldType.number,
-          controller: _textController,
-          onChanged: _onNumberChanged,
-        ),
+    return SizedBox(
+      width: 200,
+      child: MyTextField(
+        enabled: widget.enabled,
+        type: MyTextFieldType.number,
+        controller: _textController,
+        onChanged: _onNumberChanged,
       ),
     );
   }

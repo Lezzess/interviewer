@@ -4,16 +4,18 @@ import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/question.dart';
+import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question_arguments.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.dart';
 import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/redux/app_state.dart';
-import 'package:interviewer/redux/questions/answers/set_input_number_value.dart';
-import 'package:interviewer/redux/questions/answers/set_input_text_value.dart';
-import 'package:interviewer/redux/questions/answers/set_select_answer_value.dart';
+import 'package:interviewer/redux/questions/actions/answers/set_input_number_value.dart';
+import 'package:interviewer/redux/questions/actions/answers/set_input_text_value.dart';
+import 'package:interviewer/redux/questions/actions/answers/set_select_answer_value.dart';
 import 'package:interviewer/redux/questions/questions_selectors.dart';
 import 'package:interviewer/styles/app_styles.dart';
+import 'package:uuid/uuid.dart';
 
 class MyQuestions extends StatelessWidget {
   const MyQuestions({super.key});
@@ -51,6 +53,17 @@ class MyQuestions extends StatelessWidget {
   }
 
   void _goToAddQuestion(BuildContext context) {
+    // final question = Question(
+    //     id: const Uuid().v4(),
+    //     text: 'Would you like to play a game?',
+    //     answer: SelectValueAnswer(
+    //         id: const Uuid().v4(),
+    //         isMultipleSelect: true,
+    //         values: ['First', 'Second', 'Third']
+    //             .map((e) => SelectValue(
+    //                 id: const Uuid().v4(), value: e, isSelected: true))
+    //             .toList()));
+    // final arguments = MyAddEditQuestionArguments(question);
     Navigator.pushNamed(context, Routes.addQuestion);
   }
 }
@@ -100,21 +113,13 @@ class _MyQuestion extends StatelessWidget {
       return StoreConnector<AppState, OnNumberChanged>(
         converter: (store) => (answer, newValue) => store
             .dispatch(SetInputNumberValueAction(question, answer, newValue)),
-        builder: (context, callback) => MyInputNumberAnswer(
-          answer: answer,
-          onNumberChanged: callback,
-          debounceTime: 500,
-        ),
+        builder: (context, callback) => _answerInputNumber(answer, callback),
       );
     } else if (answer is InputTextAnswer) {
       return StoreConnector<AppState, OnTextChanged>(
         converter: (store) => (answer, newText) =>
             store.dispatch(SetInputTextValueAction(question, answer, newText)),
-        builder: (context, callback) => MyInputTextAnswer(
-          answer: answer,
-          onTextChanged: callback,
-          debounceTime: 500,
-        ),
+        builder: (context, callback) => _answerInputText(answer, callback),
       );
     }
 
@@ -122,5 +127,33 @@ class _MyQuestion extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text('Unknown answer type'),
     );
+  }
+
+  Widget _answerInputNumber(
+      InputNumberAnswer answer, OnNumberChanged callback) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: MyInputNumberAnswer(
+          answer: answer,
+          onNumberChanged: callback,
+          debounceTime: 500,
+        ),
+      ),
+    );
+  }
+
+  Widget _answerInputText(InputTextAnswer answer, OnTextChanged callback) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: MyInputTextAnswer(
+            answer: answer,
+            onTextChanged: callback,
+            debounceTime: 500,
+          ),
+        ));
   }
 }
