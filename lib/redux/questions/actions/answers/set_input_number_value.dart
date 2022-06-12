@@ -1,7 +1,7 @@
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/redux/app_actions.dart';
-import 'package:interviewer/utils/extensions/list_extensions.dart';
+import 'package:interviewer/extensions/list_extensions.dart';
 
 class SetInputNumberValueAction extends AppAction<List<Question>> {
   Question question;

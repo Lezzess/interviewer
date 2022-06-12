@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:interviewer/models/answers/answer_type.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
@@ -9,9 +8,6 @@ import 'package:interviewer/pages/my_add_edit_question/widgets/my_dropdown.dart'
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_options_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
-import 'package:interviewer/redux/app_state.dart';
-import 'package:interviewer/redux/questions/actions/add_question.dart';
-import 'package:redux/redux.dart';
 
 class MyAddEditQuestion extends StatefulWidget {
   final Question? question;
@@ -47,34 +43,30 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add question'),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraint) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraint.maxHeight),
-            child: IntrinsicHeight(
-              child: Column(
-                children: [
-                  _questionInput(),
-                  _answerTypeInput(),
-                  _answerValuesInput()
-                ],
+        appBar: AppBar(
+          title: const Text('Add question'),
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraint) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraint.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    _questionInput(),
+                    _answerTypeInput(),
+                    _answerValuesInput()
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-      floatingActionButton: StoreConnector<AppState, VoidCallback>(
-        converter: (store) => () => _onAddClicked(store),
-        builder: (context, callback) => FloatingActionButton(
+        floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.check),
-          onPressed: _isValid() ? callback : null,
+          onPressed: _isValid() ? _onSaveClicked : null,
           backgroundColor: _isValid() ? null : Theme.of(context).disabledColor,
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _questionInput() {
@@ -239,8 +231,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     });
   }
 
-  void _onAddClicked(Store<AppState> store) {
-    store.dispatch(AddQuestionAction(question));
-    Navigator.pop(context);
+  void _onSaveClicked() {
+    Navigator.pop(context, question);
   }
 }

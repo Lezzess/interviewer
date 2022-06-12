@@ -5,6 +5,7 @@ import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question.dart';
+import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question_arguments.dart';
 import 'package:interviewer/pages/my_questions/my_questions.dart';
 import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/redux/app_reducers.dart';
@@ -36,7 +37,7 @@ List<Question> questionsMock = <Question>[
           isMultipleSelect: true)),
   Question(
       id: const Uuid().v4(),
-      text: 'Third',
+      text: 'Використовуєте код рев\'ю? Пул реквести?',
       answer: SelectValueAnswer(
           id: const Uuid().v4(),
           values: [
@@ -49,20 +50,21 @@ List<Question> questionsMock = <Question>[
           isMultipleSelect: false)),
   Question(
       id: const Uuid().v4(),
-      text: 'Forth',
+      text:
+          'Дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже дуже довге питання',
       answer: InputNumberAnswer(id: const Uuid().v4(), value: 8.25)),
   Question(
       id: const Uuid().v4(),
-      text: 'Forth.One',
+      text: 'What is the ordinary regime in your company?',
       answer: InputNumberAnswer(id: const Uuid().v4(), value: null)),
   Question(
       id: const Uuid().v4(),
-      text: 'Fifth',
+      text: 'Скільки зарплата?',
       answer: InputTextAnswer(
           id: const Uuid().v4(), text: 'Some text in this answer')),
   Question(
       id: const Uuid().v4(),
-      text: 'Fifth.One',
+      text: 'What is the salary range?',
       answer: InputTextAnswer(id: const Uuid().v4(), text: '')),
 ];
 
@@ -126,6 +128,10 @@ class MyApp extends StatelessWidget {
         break;
       case Routes.addQuestion:
         builder = (ctx) => const MyAddEditQuestion();
+        break;
+      case Routes.editQuestion:
+        final args = settings.arguments as MyAddEditQuestionArguments;
+        builder = (ctx) => MyAddEditQuestion(question: args.question);
         break;
       default:
         return null;

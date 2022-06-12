@@ -2,14 +2,14 @@ import 'package:interviewer/models/question.dart';
 import 'package:interviewer/redux/app_actions.dart';
 import 'package:interviewer/extensions/list_extensions.dart';
 
-class AddQuestionAction extends AppAction<List<Question>> {
+class RemoveQuestionAction extends AppAction<List<Question>> {
   Question question;
 
-  AddQuestionAction(this.question);
+  RemoveQuestionAction(this.question);
 
   @override
   List<Question> handle(List<Question> state) {
-    final newQuestions = state.iadd(question);
+    final newQuestions = state.iremvoe(question);
     return newQuestions;
   }
 }
