@@ -15,6 +15,7 @@ class MyOptionsAnswer extends StatefulWidget {
 class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
   late SelectValueAnswer _answer;
   late List<TextEditingController> _textControllers;
+  late List<FocusNode> _focusNodes;
 
   @override
   void initState() {
@@ -23,6 +24,8 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
         .map((value) => TextEditingController(text: value.value))
         .toList();
 
+    _focusNodes = _answer.values.map((value) => FocusNode()).toList();
+
     super.initState();
   }
 
@@ -30,6 +33,10 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
   void dispose() {
     for (final controller in _textControllers) {
       controller.dispose();
+    }
+
+    for (final focusNode in _focusNodes) {
+      focusNode.dispose();
     }
 
     super.dispose();
@@ -61,6 +68,7 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
                         Expanded(
                           child: TextField(
                             controller: _textControllers[i],
+                            focusNode: _focusNodes[i],
                             decoration: const InputDecoration(
                               hintText: 'Type in text',
                             ),
@@ -125,6 +133,9 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
   void _onMultipleSelectChanged(bool? newValue) {
     setState(() {
       _answer.isMultipleSelect = newValue ?? false;
+      for (final value in _answer.values) {
+        value.isSelected = false;
+      }
     });
   }
 
@@ -137,6 +148,10 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
         .add(SelectValue(id: const Uuid().v4(), value: '', isSelected: false));
     setState(() {
       _textControllers.add(TextEditingController());
+
+      final newFocusNode = FocusNode();
+      _focusNodes.add(newFocusNode);
+      newFocusNode.requestFocus();
     });
   }
 
@@ -144,7 +159,10 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
     _answer.values.removeAt(i);
     setState(() {
       final controller = _textControllers.removeAt(i);
+      final focusNode = _textControllers.removeAt(i);
+
       controller.dispose();
+      focusNode.dispose();
     });
   }
 }

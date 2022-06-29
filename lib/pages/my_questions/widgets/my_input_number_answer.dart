@@ -59,6 +59,8 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
         type: MyTextFieldType.number,
         controller: _textController,
         onChanged: _onNumberChanged,
+        inputType: TextInputType.number,
+        hintText: 'Type in number',
       ),
     );
   }

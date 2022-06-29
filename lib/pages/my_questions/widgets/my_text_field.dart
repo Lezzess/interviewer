@@ -7,23 +7,22 @@ class MyTextField extends StatelessWidget {
   final TextEditingController? controller;
   final OnTextChanged? onChanged;
   final bool enabled;
+  final TextInputType inputType;
+  final String? hintText;
+  final int? maxLines;
 
   const MyTextField(
       {super.key,
       required this.type,
       this.controller,
       this.onChanged,
-      this.enabled = true});
+      this.enabled = true,
+      required this.inputType,
+      this.hintText,
+      this.maxLines});
 
   @override
   Widget build(BuildContext context) {
-    final keyboardType = type == MyTextFieldType.number
-        ? TextInputType.number
-        : TextInputType.text;
-    final hintText =
-        type == MyTextFieldType.number ? "Type in number" : "Type in text";
-    final maxLines = type == MyTextFieldType.number ? 1 : 5;
-
     return TextField(
       enabled: enabled,
       controller: controller,
@@ -32,7 +31,7 @@ class MyTextField extends StatelessWidget {
       maxLines: maxLines,
       textAlign: TextAlign.left,
       style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-      keyboardType: keyboardType,
+      keyboardType: inputType,
       textAlignVertical: TextAlignVertical.bottom,
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(

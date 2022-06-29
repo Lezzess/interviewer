@@ -27,6 +27,8 @@ class MyInputTextAnswer extends StatefulWidget {
 class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
   late TextEditingController _textController;
   late BehaviorSubject<String> _subject;
+  // TODO. Implement a toggle
+  final bool isMultiline = false;
 
   @override
   void initState() {
@@ -49,10 +51,14 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
   @override
   Widget build(BuildContext context) {
     return MyTextField(
-        enabled: widget.enabled,
-        type: MyTextFieldType.text,
-        controller: _textController,
-        onChanged: _onTextChanged);
+      enabled: widget.enabled,
+      type: MyTextFieldType.text,
+      controller: _textController,
+      onChanged: _onTextChanged,
+      inputType: TextInputType.number,
+      hintText: 'Type in text',
+      maxLines: isMultiline ? 5 : 1,
+    );
   }
 
   void _onTextChanged(String newValue) {

@@ -3,7 +3,6 @@ import 'package:interviewer/models/answers/answer_type.dart';
 import 'package:uuid/uuid.dart';
 
 class SelectValueAnswer extends Answer {
-  String id;
   List<SelectValue> values;
   bool isMultipleSelect;
 
@@ -11,8 +10,10 @@ class SelectValueAnswer extends Answer {
       : this(id: const Uuid().v4(), values: [], isMultipleSelect: false);
 
   SelectValueAnswer(
-      {required this.id, required this.values, required this.isMultipleSelect})
-      : super(AnswerType.selectValue);
+      {required String id,
+      required this.values,
+      required this.isMultipleSelect})
+      : super(id, AnswerType.selectValue);
 
   SelectValueAnswer copyWith(
       {String? id, List<SelectValue>? values, bool? isMultipleSelect}) {

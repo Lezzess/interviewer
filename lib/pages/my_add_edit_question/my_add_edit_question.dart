@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:interviewer/models/answers/answer.dart';
 import 'package:interviewer/models/answers/answer_type.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
@@ -10,9 +11,11 @@ import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.da
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 
 class MyAddEditQuestion extends StatefulWidget {
-  final Question? question;
+  final Question question;
+  final Answer? answer;
 
-  const MyAddEditQuestion({super.key, this.question});
+  const MyAddEditQuestion(
+      {super.key, required this.question, required this.answer});
 
   @override
   State<MyAddEditQuestion> createState() => _MyAddEditQuestionState();
@@ -25,11 +28,13 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     AnswerType.inputText
   ];
   late Question question;
+  late Answer? answer;
   late TextEditingController questionController;
 
   @override
   void initState() {
-    question = widget.question?.clone() ?? Question.empty();
+    question = widget.question;
+    answer = widget.answer;
     questionController = TextEditingController(text: question.text);
     super.initState();
   }
@@ -97,7 +102,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
           children: [
             MyDropdown<AnswerType>(
               values: answerTypes,
-              selectedValue: question.answer?.type,
+              selectedValue: answer?.type,
               onValueChanged: _onAnswerTypeChanged,
               toStringConverter: _mapAnswerTypeToString,
             )
@@ -112,7 +117,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     String cardTitle;
     Widget? answerWidget;
 
-    switch (question.answer?.type) {
+    switch (answer?.type) {
       case AnswerType.selectValue:
         cardTitle = 'Options';
         answerWidget = _answerInputOptions();
@@ -153,7 +158,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   bool _isValid() {
-    return question.text != '' && question.answer != null;
+    return question.text != '' && answer != null;
   }
 
   String _mapAnswerTypeToString(AnswerType type) {
@@ -180,7 +185,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     return Align(
         alignment: Alignment.topLeft,
         child: MyOptionsAnswer(
-          answer: question.answer as SelectValueAnswer,
+          answer: answer as SelectValueAnswer,
         ));
   }
 
@@ -209,29 +214,37 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   void _onAnswerTypeChanged(AnswerType? answerType) {
-    if (question.answer != null && question.answer!.type == answerType) {
+    if (answer != null && answer!.type == answerType) {
       return;
     }
 
     setState(() {
       switch (answerType) {
         case AnswerType.inputNumber:
-          question.answer = InputNumberAnswer.empty();
+          answer = InputNumberAnswer.empty();
           break;
         case AnswerType.inputText:
-          question.answer = InputTextAnswer.empty();
+          answer = InputTextAnswer.empty();
           break;
         case AnswerType.selectValue:
-          question.answer = SelectValueAnswer.empty();
+          answer = SelectValueAnswer.empty();
           break;
         default:
-          question.answer = null;
+          answer = null;
           break;
       }
     });
   }
 
   void _onSaveClicked() {
-    Navigator.pop(context, question);
+    final output = AddEditQuestionOutput(question, answer);
+    Navigator.pop(context, output);
   }
+}
+
+class AddEditQuestionOutput {
+  final Question question;
+  final Answer? answer;
+
+  AddEditQuestionOutput(this.question, this.answer);
 }
