@@ -8,13 +8,17 @@ class MyDropdown<T> extends StatelessWidget {
   final T? selectedValue;
   final OnValueChanged<T> onValueChanged;
   final ToStringConverter<T>? toStringConverter;
+  final String? hintText;
+  final String? labelText;
 
   const MyDropdown(
       {super.key,
       required this.values,
       required this.selectedValue,
       required this.onValueChanged,
-      this.toStringConverter});
+      this.toStringConverter,
+      this.hintText,
+      this.labelText});
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +26,8 @@ class MyDropdown<T> extends StatelessWidget {
         builder: (FormFieldState<String> state) => DropdownButtonHideUnderline(
               child: InputDecorator(
                 decoration: InputDecoration(
-                    hintText: 'Select answer type',
-                    labelText: 'What type of answer?',
+                    hintText: hintText,
+                    labelText: labelText,
                     labelStyle: TextStyle(
                         color: Theme.of(context).colorScheme.primaryContainer),
                     floatingLabelBehavior: FloatingLabelBehavior.always,

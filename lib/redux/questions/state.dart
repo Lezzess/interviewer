@@ -1,12 +1,25 @@
 import 'package:interviewer/models/question.dart';
 
-class QuestionState {
+class QuestionsState {
   final Map<String, Question> byId;
   final List<String> all;
+  final Map<String, List<String>> companiesQuestions;
 
-  QuestionState({required this.byId, required this.all});
+  QuestionsState({
+    required this.byId,
+    required this.all,
+    required this.companiesQuestions,
+  });
 
-  QuestionState copyWith({Map<String, Question>? byId, List<String>? all}) {
-    return QuestionState(byId: byId ?? this.byId, all: all ?? this.all);
+  QuestionsState copyWith({
+    Map<String, Question>? byId,
+    List<String>? all,
+    Map<String, List<String>>? companiesQuestions,
+  }) {
+    return QuestionsState(
+      byId: byId ?? this.byId,
+      all: all ?? this.all,
+      companiesQuestions: companiesQuestions ?? this.companiesQuestions,
+    );
   }
 }

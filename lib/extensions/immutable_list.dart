@@ -9,7 +9,7 @@ extension ListExtensions<T> on List<T> {
     return map((e) => e == oldValue ? newValue : e).toList();
   }
 
-  List<T> iremvoe(T value) {
+  List<T> iremove(T value) {
     final index = indexOf(value);
     if (index == -1) {
       return this;

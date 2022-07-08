@@ -1,77 +1,131 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:interviewer/models/company.dart';
+import 'package:interviewer/models/folder.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question_arguments.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_question.dart';
+import 'package:interviewer/pages/my_questions/widgets/my_sticky_app_bar.dart';
 import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/redux/answers/selectors.dart';
 import 'package:interviewer/redux/app/state.dart';
+import 'package:interviewer/redux/companies/selectors.dart';
+import 'package:interviewer/redux/folders/selectors.dart';
 import 'package:interviewer/redux/questions/actions.dart';
 import 'package:interviewer/redux/questions/selectors.dart';
+import 'package:quiver/core.dart';
 import 'package:redux/redux.dart';
 
 class MyQuestions extends StatelessWidget {
-  const MyQuestions({super.key});
+  final String companyId;
+
+  const MyQuestions({super.key, required this.companyId});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Questions'),
-      ),
-      body: StoreConnector<AppState, _ViewModel>(
-        converter: (store) => _ViewModel(
-            questionIds: store.state.questions.all,
-            editCallback: (questionId) =>
-                _onEditClicked(context, questionId, store),
-            removeCallback: (questionId) =>
-                _onRemoveClicked(context, questionId, store)),
-        builder: (context, viewmodel) => ListView.builder(
-            shrinkWrap: true,
-            // One more item for empty box in the bottom
-            itemCount: viewmodel.questionIds.length + 1,
-            itemBuilder: (context, index) => _listItem(
-                viewmodel.questionIds,
-                index,
-                context,
-                viewmodel.editCallback,
-                viewmodel.removeCallback)),
-      ),
-      floatingActionButton: StoreConnector<AppState, VoidCallback>(
-        converter: (store) => () => _onAddClicked(context, store),
-        builder: (context, callback) => FloatingActionButton(
+    return StoreConnector<AppState, _ViewModel>(
+      distinct: true,
+      converter: (store) => _ViewModel(
+          questions: selectCompanyQuestions(store.state.questions, companyId),
+          company: selectCompany(store.state.companies, companyId),
+          onFillFromTemplate: () => _onFillFromTemplateClicked(store),
+          onAdd: () => _onAddClicked(context, store),
+          onEdit: (questionId) => _onEditClicked(context, questionId, store),
+          onRemove: (questionId) =>
+              _onRemoveClicked(context, questionId, store)),
+      builder: (context, viewModel) => Scaffold(
+        body: MyStickyAppBar(
+            title: Text(viewModel.company.name),
+            isFillFromTemplateAvailable: viewModel.questions.isEmpty,
+            onFillFromTemplateClicked: viewModel.onFillFromTemplate,
+            onFoldersClicked: (context) => _onFoldersClicked(context),
+            allViewBuilder: (context) => _tabList(
+                  context,
+                  viewModel.questions,
+                  onEdit: viewModel.onEdit,
+                  onRemove: viewModel.onRemove,
+                ),
+            folderViewBuilder: (context, folder) => _tabList(
+                  context,
+                  selectFolderQuestions(viewModel.questions, folder),
+                  onEdit: viewModel.onEdit,
+                  onRemove: viewModel.onRemove,
+                )),
+        floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
-          onPressed: callback,
+          onPressed: viewModel.onAdd,
         ),
       ),
     );
   }
 
-  Widget _listItem(List<String> questionIds, int index, BuildContext context,
+  SliverList _tabList(
+    BuildContext context,
+    List<Question> questions, {
+    required OnEdit onEdit,
+    required OnRemove onRemove,
+  }) {
+    return SliverList(
+        delegate: SliverChildBuilderDelegate(
+      // One more for empty box at the bottom
+      childCount: questions.length + 1,
+      (context, index) => _listItem(
+        questions,
+        index,
+        context,
+        onEdit,
+        onRemove,
+      ),
+    ));
+  }
+
+  Widget _listItem(List<Question> questions, int index, BuildContext context,
       OnEdit editCallback, OnRemove removeCallback) {
-    if (index >= questionIds.length) {
+    if (index >= questions.length) {
       return Container(height: 80);
     }
 
     return MyQuestion(
-      questionId: questionIds[index],
+      questionId: questions[index].id,
       onEdit: editCallback,
       onRemove: removeCallback,
     );
   }
 
+  List<Question> selectFolderQuestions(
+    List<Question> allQuestions,
+    Folder folder,
+  ) {
+    return allQuestions
+        .where((question) => question.folderId == folder.id)
+        .toList();
+  }
+
+  void _onFillFromTemplateClicked(Store<AppState> store) {
+    store.dispatch(FillQuestionsFromTemplateAction(companyId));
+  }
+
+  void _onFoldersClicked(BuildContext context) async {
+    await Navigator.pushNamed(context, Routes.folders);
+  }
+
   void _onAddClicked(BuildContext context, Store<AppState> store) async {
-    final question = Question.empty();
+    final args = MyAddEditQuestionArguments(companyId: companyId);
+    final result = await Navigator.pushNamed(
+      context,
+      Routes.addQuestion,
+      arguments: args,
+    );
 
-    final args = MyAddEditQuestionArguments(question: question, asnwer: null);
-    final addedQuestionAndAnswer =
-        await Navigator.pushNamed(context, Routes.addQuestion, arguments: args);
-
-    if (addedQuestionAndAnswer != null) {
-      final tuple = addedQuestionAndAnswer as AddEditQuestionOutput;
-      store.dispatch(
-          AddQuestionAction(question: tuple.question, answer: tuple.answer));
+    if (result != null) {
+      final output = result as AddEditQuestionOutput;
+      store.dispatch(AddQuestionAction(
+        question: output.question,
+        answer: output.answer,
+        folder: output.folder,
+      ));
     }
   }
 
@@ -79,22 +133,24 @@ class MyQuestions extends StatelessWidget {
       BuildContext context, String questionId, Store<AppState> store) async {
     final question = selectQuestion(store.state.questions, questionId);
     final answer = selectAnswer(store.state.answers, question.answerId);
+    final folder = selectFolder(store.state.folders, question.folderId);
 
-    final questionCopy = question.clone();
-    final answerCopy = answer?.clone();
-
-    final args =
-        MyAddEditQuestionArguments(question: questionCopy, asnwer: answerCopy);
-    final updatedQuestion = await Navigator.pushNamed(
-        context, Routes.editQuestion,
+    final args = MyAddEditQuestionArguments(
+        question: question,
+        asnwer: answer,
+        folder: folder,
+        companyId: companyId);
+    final result = await Navigator.pushNamed(context, Routes.editQuestion,
         arguments: args);
 
-    if (updatedQuestion != null) {
-      final tuple = updatedQuestion as AddEditQuestionOutput;
+    if (result != null) {
+      final output = result as AddEditQuestionOutput;
       store.dispatch(UpdateQuestionAction(
-          oldQuestionId: questionId,
-          newQuestion: tuple.question,
-          newAnswer: tuple.answer));
+        oldQuestionId: questionId,
+        newQuestion: output.question,
+        newAnswer: output.answer,
+        newFolder: output.folder,
+      ));
     }
   }
 
@@ -104,13 +160,37 @@ class MyQuestions extends StatelessWidget {
   }
 }
 
-class _ViewModel {
-  final List<String> questionIds;
-  final OnEdit editCallback;
-  final OnRemove removeCallback;
+typedef OnFillFromTemplate = void Function();
+typedef OnAdd = void Function();
 
-  _ViewModel(
-      {required this.questionIds,
-      required this.editCallback,
-      required this.removeCallback});
+class _ViewModel {
+  final List<Question> questions;
+  final Company company;
+  final OnFillFromTemplate onFillFromTemplate;
+  final OnAdd onAdd;
+  final OnEdit onEdit;
+  final OnRemove onRemove;
+
+  _ViewModel({
+    required this.questions,
+    required this.company,
+    required this.onFillFromTemplate,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ViewModel &&
+      other.runtimeType == runtimeType &&
+      listEquals(other.questions, questions) &&
+      other.company == company;
+
+  @override
+  int get hashCode => hash3(
+        questions.hashCode,
+        company.hashCode,
+        hashList(questions),
+      );
 }

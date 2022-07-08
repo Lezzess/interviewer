@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:interviewer/models/answers/answer.dart';
 import 'package:interviewer/models/answers/answer_type.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
+import 'package:interviewer/models/folder.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_dropdown.dart';
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_options_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
+import 'package:interviewer/redux/app/state.dart';
+import 'package:interviewer/redux/folders/selectors.dart';
 
 class MyAddEditQuestion extends StatefulWidget {
-  final Question question;
+  final Question? question;
   final Answer? answer;
+  final Folder? folder;
+  final String companyId;
 
   const MyAddEditQuestion(
-      {super.key, required this.question, required this.answer});
+      {super.key,
+      required this.question,
+      required this.answer,
+      required this.folder,
+      required this.companyId});
 
   @override
   State<MyAddEditQuestion> createState() => _MyAddEditQuestionState();
@@ -29,12 +39,14 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   ];
   late Question question;
   late Answer? answer;
+  late Folder? folder;
   late TextEditingController questionController;
 
   @override
   void initState() {
-    question = widget.question;
-    answer = widget.answer;
+    question = widget.question?.clone() ?? Question.empty(widget.companyId);
+    answer = widget.answer?.clone();
+    folder = widget.folder;
     questionController = TextEditingController(text: question.text);
     super.initState();
   }
@@ -60,6 +72,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
                   children: [
                     _questionInput(),
                     _answerTypeInput(),
+                    _questionFolderInput(),
                     _answerValuesInput()
                   ],
                 ),
@@ -105,9 +118,35 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
               selectedValue: answer?.type,
               onValueChanged: _onAnswerTypeChanged,
               toStringConverter: _mapAnswerTypeToString,
+              hintText: 'Select answer type',
+              labelText: 'What type of answer?',
             )
           ],
           crossAxisAlignment: CrossAxisAlignment.stretch,
+        ),
+      ),
+    );
+  }
+
+  Widget _questionFolderInput() {
+    return StoreConnector<AppState, List<Folder>>(
+      converter: (store) => selectAllFolders(store.state.folders),
+      builder: (context, folders) => Card(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+          child: Column(
+            children: [
+              MyDropdown<Folder>(
+                values: folders,
+                selectedValue: folder,
+                onValueChanged: _onFolderChanged,
+                toStringConverter: (folder) => folder.name,
+                hintText: 'Select folder',
+                labelText: 'Folder',
+              )
+            ],
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+          ),
         ),
       ),
     );
@@ -158,7 +197,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   bool _isValid() {
-    return question.text != '' && answer != null;
+    return question.text != '' && answer != null && folder != null;
   }
 
   String _mapAnswerTypeToString(AnswerType type) {
@@ -236,8 +275,18 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     });
   }
 
+  void _onFolderChanged(Folder? newFolder) {
+    if (newFolder == folder) {
+      return;
+    }
+
+    setState(() {
+      folder = newFolder;
+    });
+  }
+
   void _onSaveClicked() {
-    final output = AddEditQuestionOutput(question, answer);
+    final output = AddEditQuestionOutput(question, answer, folder);
     Navigator.pop(context, output);
   }
 }
@@ -245,6 +294,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
 class AddEditQuestionOutput {
   final Question question;
   final Answer? answer;
+  final Folder? folder;
 
-  AddEditQuestionOutput(this.question, this.answer);
+  AddEditQuestionOutput(this.question, this.answer, this.folder);
 }

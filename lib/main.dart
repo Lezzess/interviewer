@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question_arguments.dart';
+import 'package:interviewer/pages/my_companies/my_companies.dart';
+import 'package:interviewer/pages/my_folders/my_folders.dart';
 import 'package:interviewer/pages/my_questions/my_questions.dart';
+import 'package:interviewer/pages/my_questions/my_questions_arguments.dart';
 import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/redux/app/reducers.dart';
 import 'package:interviewer/redux/app/state.dart';
@@ -54,7 +57,7 @@ class MyApp extends StatelessWidget {
             //     onSurface: black),
             primarySwatch: Colors.blue,
             toggleableActiveColor: Colors.red),
-        initialRoute: Routes.questions,
+        initialRoute: Routes.companies,
         onGenerateRoute: _onGenerateRoute,
       ),
     );
@@ -65,13 +68,16 @@ class MyApp extends StatelessWidget {
 
     switch (settings.name) {
       case Routes.questions:
-        builder = (ctx) => const MyQuestions();
+        final args = settings.arguments as MyQuestionsArguments;
+        builder = (ctx) => MyQuestions(companyId: args.companyId);
         break;
       case Routes.addQuestion:
         final args = settings.arguments as MyAddEditQuestionArguments;
         builder = (ctx) => MyAddEditQuestion(
               question: args.question,
               answer: args.asnwer,
+              folder: args.folder,
+              companyId: args.companyId,
             );
         break;
       case Routes.editQuestion:
@@ -79,7 +85,15 @@ class MyApp extends StatelessWidget {
         builder = (ctx) => MyAddEditQuestion(
               question: args.question,
               answer: args.asnwer,
+              folder: args.folder,
+              companyId: args.companyId,
             );
+        break;
+      case Routes.folders:
+        builder = (ctx) => const MyFolders();
+        break;
+      case Routes.companies:
+        builder = (ctx) => const MyCompanies();
         break;
       default:
         return null;

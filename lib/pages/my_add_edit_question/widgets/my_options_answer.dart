@@ -159,7 +159,7 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
     _answer.values.removeAt(i);
     setState(() {
       final controller = _textControllers.removeAt(i);
-      final focusNode = _textControllers.removeAt(i);
+      final focusNode = _focusNodes.removeAt(i);
 
       controller.dispose();
       focusNode.dispose();
