@@ -112,6 +112,7 @@ List<Question> pquestions = [
       id: '024beaa5-347d-408d-89da-7225a7621d12',
       text: 'Some text in this answer',
       questionId: '90722a10-7f73-4614-bc42-b6bad0bf113f',
+      isMultiline: true,
     ),
   ),
   Question(
@@ -120,8 +121,9 @@ List<Question> pquestions = [
     companyId: '8f4fc979-f878-4d2b-aa7b-a3ac6b711ad7',
     answer: InputTextAnswer(
       id: 'a44c936a-390c-4cfc-9b7d-edbf4eb5bb6a',
-      text: '',
+      text: 'Blah',
       questionId: '65d9182f-ad00-4619-905f-7337b62fafed',
+      isMultiline: false,
     ),
   )
 ];

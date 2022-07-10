@@ -112,7 +112,7 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
     return Row(
       children: [
         Text(
-          'Multiple select',
+          'Multiselect',
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         Expanded(

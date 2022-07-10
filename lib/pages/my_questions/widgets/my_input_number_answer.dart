@@ -11,9 +11,12 @@ class MyInputNumberAnswer extends StatefulWidget {
   final int debounceTime;
   final bool enabled;
 
-  const MyInputNumberAnswer(
-      {super.key, this.answer, this.debounceTime = 500, this.enabled = true})
-      : assert(!enabled || enabled && answer != null,
+  const MyInputNumberAnswer({
+    super.key,
+    this.answer,
+    this.debounceTime = 500,
+    this.enabled = true,
+  }) : assert(!enabled || enabled && answer != null,
             'If input number field is enabled, it should have answer != null');
 
   @override

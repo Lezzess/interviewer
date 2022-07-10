@@ -9,6 +9,7 @@ class MyTextField extends StatelessWidget {
   final bool enabled;
   final TextInputType inputType;
   final String? hintText;
+  final int? minLines;
   final int? maxLines;
 
   const MyTextField(
@@ -19,6 +20,7 @@ class MyTextField extends StatelessWidget {
       this.enabled = true,
       required this.inputType,
       this.hintText,
+      this.minLines,
       this.maxLines});
 
   @override
@@ -27,7 +29,7 @@ class MyTextField extends StatelessWidget {
       enabled: enabled,
       controller: controller,
       onChanged: onChanged,
-      minLines: 1,
+      minLines: minLines,
       maxLines: maxLines,
       textAlign: TextAlign.left,
       style: TextStyle(color: Theme.of(context).colorScheme.secondary),

@@ -6,9 +6,9 @@ import 'package:interviewer/models/answers/select_value_answer.dart';
 import 'package:interviewer/models/folder.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_dropdown.dart';
+import 'package:interviewer/pages/my_add_edit_question/widgets/my_edit_input_text_answer.dart';
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_options_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
-import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/states/folders_state.dart';
 import 'package:provider/provider.dart';
 
@@ -227,10 +227,10 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   Widget _answerInputText() {
-    return const Align(
+    return Align(
       alignment: Alignment.topLeft,
-      child: MyInputTextAnswer(
-        enabled: false,
+      child: MyEditInputTextAnswer(
+        answer: question.answer as InputTextAnswer,
       ),
     );
   }

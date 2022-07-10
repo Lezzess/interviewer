@@ -6,14 +6,16 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class MyInputTextAnswer extends StatefulWidget {
-  final InputTextAnswer? answer;
+  final InputTextAnswer answer;
   final int debounceTime;
   final bool enabled;
 
-  const MyInputTextAnswer(
-      {super.key, this.answer, this.debounceTime = 500, this.enabled = true})
-      : assert(!enabled || enabled && answer != null,
-            'If input text field is enabled, it should have answer != null');
+  const MyInputTextAnswer({
+    super.key,
+    required this.answer,
+    this.debounceTime = 500,
+    this.enabled = true,
+  });
 
   @override
   State<MyInputTextAnswer> createState() => _MyInputTextAnswerState();
@@ -22,22 +24,18 @@ class MyInputTextAnswer extends StatefulWidget {
 class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
   late TextEditingController _textController;
   late BehaviorSubject<String> _subject;
-  // TODO. Implement a toggle
-  final bool isMultiline = false;
 
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.answer?.text);
-    _subject = BehaviorSubject<String>.seeded(widget.answer?.text ?? '');
+    _textController = TextEditingController(text: widget.answer.text);
+    _subject = BehaviorSubject<String>.seeded(widget.answer.text);
     _subject.stream
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
-        .listen((value) => context.read<QuestionsState>().setAnswerText(
-              widget.answer!,
-              value,
-            ));
+        .listen((value) =>
+            context.read<QuestionsState>().setAnswerText(widget.answer, value));
   }
 
   @override
@@ -53,9 +51,12 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
       type: MyTextFieldType.text,
       controller: _textController,
       onChanged: _onTextChanged,
-      inputType: TextInputType.text,
+      inputType: widget.answer.isMultiline
+          ? TextInputType.multiline
+          : TextInputType.text,
       hintText: 'Type in text',
-      maxLines: isMultiline ? 5 : 1,
+      minLines: widget.answer.isMultiline ? 2 : 1,
+      maxLines: widget.answer.isMultiline ? 5 : 1,
     );
   }
 

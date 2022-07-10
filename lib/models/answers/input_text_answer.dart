@@ -4,17 +4,20 @@ import 'package:uuid/uuid.dart';
 
 class InputTextAnswer extends Answer {
   String text;
+  bool isMultiline;
 
   InputTextAnswer.empty(String questionId)
       : this(
           id: const Uuid().v4(),
           text: '',
           questionId: questionId,
+          isMultiline: false,
         );
 
   InputTextAnswer({
     required String id,
     required this.text,
+    required this.isMultiline,
     required String questionId,
   }) : super(id, AnswerType.inputText, questionId);
 
@@ -23,6 +26,7 @@ class InputTextAnswer extends Answer {
       'id': id,
       'type': type.name,
       'value_text': text,
+      'is_multiline': isMultiline ? 1 : 0,
       'question_id': questionId,
     };
   }
@@ -31,6 +35,7 @@ class InputTextAnswer extends Answer {
       : this(
           id: entry['id'],
           text: entry['value_text'],
+          isMultiline: entry['is_multiline'] == 1,
           questionId: entry['question_id'],
         );
 
@@ -41,6 +46,7 @@ class InputTextAnswer extends Answer {
       id: id,
       text: text,
       questionId: questionId,
+      isMultiline: isMultiline,
     );
   }
 }

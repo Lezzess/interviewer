@@ -32,6 +32,7 @@ create table if not exists "answers" (
   "value_double" real null,
   "value_text" text null,
   "is_multiselect" integer null,
+  "is_multiline" integer null,
   "question_id" text not null,
   foreign key ("question_id") references "questions" ("id")
 );
