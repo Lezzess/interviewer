@@ -96,7 +96,10 @@ class _MyQuestionState extends State<MyQuestion> {
             padding: const EdgeInsets.fromLTRB(5, 13, 5, 5),
             constraints: const BoxConstraints(),
             icon: Icon(Icons.note_alt,
-                color: Theme.of(context).unselectedWidgetColor),
+                color: (widget.question.note == null ||
+                        widget.question.note!.isEmpty)
+                    ? Theme.of(context).unselectedWidgetColor
+                    : Theme.of(context).colorScheme.secondary),
             onPressed: _showNoteField,
           ),
           IconButton(

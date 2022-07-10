@@ -9,24 +9,31 @@ import 'package:interviewer/models/question.dart';
 import 'package:interviewer/states/companies_state.dart';
 import 'package:interviewer/repositories/questions.dart' as rquestions;
 import 'package:sqflite/sqflite.dart';
+import 'package:collection/collection.dart';
 
 class QuestionsState with ChangeNotifier {
-  List<Question> questions;
+  Map<String, List<Question>> questionsMap;
 
-  QuestionsState(this.questions);
+  QuestionsState(List<Question> questions)
+      : questionsMap = questions.groupListsBy((q) => q.companyId);
 
   void add(Question question) async {
     await Db.transaction((txn) async {
+      var questions = getQuestions(question.companyId);
       questions.add(question);
+
       notifyListeners();
+
       await rquestions.add(txn, question);
     });
   }
 
   void update(Question oldQuestion, Question newQuestion) async {
     await Db.transaction((txn) async {
+      final questions = getQuestions(oldQuestion.companyId);
       final oldQuestionsIndex = questions.indexOf(oldQuestion);
       questions[oldQuestionsIndex] = newQuestion;
+
       notifyListeners();
 
       await rquestions.updateWithAnswers(txn, oldQuestion, newQuestion);
@@ -35,26 +42,19 @@ class QuestionsState with ChangeNotifier {
 
   void remove(Question question) async {
     await Db.transaction((txn) async {
+      final questions = getQuestions(question.companyId);
       questions.remove(question);
+
       notifyListeners();
+
       await rquestions.remove(txn, question);
     });
   }
 
   void removeCompanyQuestions(Transaction txn, Company company) async {
-    final questionsToRemove = <Question>[];
-    final newQuestions = <Question>[];
+    final questionsToRemove = getQuestions(company.id);
+    questionsMap.remove(company.id);
 
-    for (final question in questions) {
-      if (question.companyId == company.id) {
-        questionsToRemove.add(question);
-        continue;
-      }
-
-      newQuestions.add(question);
-    }
-
-    questions = newQuestions;
     notifyListeners();
 
     for (final question in questionsToRemove) {
@@ -65,12 +65,15 @@ class QuestionsState with ChangeNotifier {
   void removeQuestionsFolder(Transaction txn, Folder folder) async {
     final questionsToUpdate = <Question>[];
 
-    for (final question in questions) {
-      if (question.folderId == folder.id) {
-        question.folderId = null;
-        questionsToUpdate.add(question);
+    for (final questions in questionsMap.values) {
+      for (final question in questions) {
+        if (question.folderId == folder.id) {
+          question.folderId = null;
+          questionsToUpdate.add(question);
+        }
       }
     }
+
     notifyListeners();
 
     for (final question in questionsToUpdate) {
@@ -83,14 +86,12 @@ class QuestionsState with ChangeNotifier {
       final templateCompany = companiesState.companies.firstWhere(
         (c) => c.isTemplate,
       );
-      final templateQuestions = questions.where(
-        (q) => q.companyId == templateCompany.id,
-      );
+      final templateQuestions = getQuestions(templateCompany.id);
 
       final copiedQuestions = templateQuestions
           .map((q) => q.clone(companyId: companyId, generateNewGuid: true))
           .toList();
-      questions.addAll(copiedQuestions);
+      questionsMap[companyId] = copiedQuestions;
 
       notifyListeners();
 
@@ -145,5 +146,15 @@ class QuestionsState with ChangeNotifier {
       notifyListeners();
       await rquestions.updateAnswer(txn, answer);
     });
+  }
+
+  List<Question> getQuestions(String companyId) {
+    var questions = questionsMap[companyId];
+    if (questions == null) {
+      questions = [];
+      questionsMap[companyId] = questions;
+    }
+
+    return questions;
   }
 }

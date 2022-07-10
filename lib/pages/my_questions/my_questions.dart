@@ -22,9 +22,7 @@ class MyQuestions extends StatelessWidget {
     );
 
     final questionsState = context.watch<QuestionsState>();
-    final questions = questionsState.questions
-        .where((q) => q.companyId == companyId)
-        .toList();
+    final questions = questionsState.getQuestions(companyId);
 
     final foldersState = context.watch<FoldersState>();
     return DefaultTabController(
