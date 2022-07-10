@@ -14,6 +14,24 @@ Future add(DatabaseExecutor txn, Company company) async {
   await txn.insert('companies', entry);
 }
 
+Future update(DatabaseExecutor txn, Company company) async {
+  final entry = company.toDb();
+  await txn.update(
+    'companies',
+    entry,
+    where: 'id = ?',
+    whereArgs: [company.id],
+  );
+}
+
+Future remove(DatabaseExecutor txn, Company company) async {
+  await txn.delete(
+    'companies',
+    where: 'id = ?',
+    whereArgs: [company.id],
+  );
+}
+
 Future clear(DatabaseExecutor txn) async {
   await txn.delete('companies');
 }

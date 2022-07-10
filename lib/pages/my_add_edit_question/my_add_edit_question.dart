@@ -184,9 +184,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   bool _isValid() {
-    return question.text != '' &&
-        question.answer != null &&
-        question.folderId != null;
+    return question.text != '' && question.answer != null;
   }
 
   String _mapAnswerTypeToString(AnswerType type) {

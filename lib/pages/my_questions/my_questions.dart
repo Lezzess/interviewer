@@ -3,9 +3,9 @@ import 'package:interviewer/models/folder.dart';
 import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_add_edit_question/my_add_edit_question_arguments.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_question.dart';
-import 'package:interviewer/pages/my_questions/widgets/my_sticky_app_bar.dart';
 import 'package:interviewer/pages/routes.dart';
 import 'package:interviewer/states/companies_state.dart';
+import 'package:interviewer/states/folders_state.dart';
 import 'package:interviewer/states/questions_state.dart';
 import 'package:provider/provider.dart';
 
@@ -23,66 +23,78 @@ class MyQuestions extends StatelessWidget {
 
     final questionsState = context.watch<QuestionsState>();
     final questions = questionsState.questions
-        .where(
-          (q) => q.companyId == companyId,
-        )
+        .where((q) => q.companyId == companyId)
         .toList();
 
-    return Scaffold(
-      body: MyStickyAppBar(
+    final foldersState = context.watch<FoldersState>();
+    return DefaultTabController(
+      length: foldersState.folders.length + 1, // One more for "Add" tab
+      child: Scaffold(
+        appBar: AppBar(
           title: Text(company.name),
-          isFillFromTemplateAvailable: questions.isEmpty,
-          onFillFromTemplateClicked: () => _onFillFromTemplateClicked(context),
-          onFoldersClicked: (context) => _onFoldersClicked(context),
-          allViewBuilder: (context) => _tabList(
-                context,
-                questions,
-                onEdit: (question) => _onEditClicked(context, question),
-                onRemove: (question) => _onRemoveClicked(context, question),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TabBar(
+                isScrollable: true,
+                labelColor: Theme.of(context).primaryColor,
+                tabs: _tabs(foldersState),
               ),
-          folderViewBuilder: (context, folder) => _tabList(
-                context,
-                selectFolderQuestions(questions, folder),
-                onEdit: (question) => _onEditClicked(context, question),
-                onRemove: (question) => _onRemoveClicked(context, question),
-              )),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => _onAddClicked(context),
+            ),
+          ),
+          actions: [
+            if (!company.isTemplate)
+              IconButton(
+                  icon: const Icon(Icons.download),
+                  onPressed: questions.isEmpty
+                      ? () => _onFillFromTemplateClicked(context)
+                      : null),
+            IconButton(
+              icon: const Icon(Icons.folder),
+              onPressed: () => _onFoldersClicked(context),
+            )
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            _tabView(context, questions),
+            for (final folder in foldersState.folders)
+              _tabView(context, selectFolderQuestions(questions, folder))
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.add),
+          onPressed: () => _onAddClicked(context),
+        ),
       ),
     );
   }
 
-  SliverList _tabList(
-    BuildContext context,
-    List<Question> questions, {
-    required OnEdit onEdit,
-    required OnRemove onRemove,
-  }) {
-    return SliverList(
-        delegate: SliverChildBuilderDelegate(
-      // One more for empty box at the bottom
-      childCount: questions.length + 1,
-      (context, index) => _listItem(
-        questions,
-        index,
-        context,
-        onEdit,
-        onRemove,
-      ),
-    ));
+  List<Widget> _tabs(FoldersState state) {
+    return [
+      const Tab(text: 'All'),
+      for (var folder in state.folders) Tab(text: folder.name)
+    ];
   }
 
-  Widget _listItem(List<Question> questions, int index, BuildContext context,
-      OnEdit editCallback, OnRemove removeCallback) {
+  Widget _tabView(BuildContext context, List<Question> questions) {
+    return ListView.builder(
+      // One more item for empty box at the bottom
+      itemCount: questions.length + 1,
+      itemBuilder: (context, index) => _listItem(questions, index, context),
+    );
+  }
+
+  Widget _listItem(List<Question> questions, int index, BuildContext context) {
     if (index >= questions.length) {
       return Container(height: 80);
     }
 
     return MyQuestion(
       question: questions[index],
-      onEdit: editCallback,
-      onRemove: removeCallback,
+      onEdit: (question) => _onEditClicked(context, question),
+      onRemove: (question) => _onRemoveClicked(context, question),
     );
   }
 

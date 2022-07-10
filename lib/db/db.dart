@@ -1,20 +1,21 @@
 import 'package:flutter/services.dart';
+import 'package:interviewer/models/company.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:interviewer/repositories/companies.dart' as companies;
 
 const _dbName = 'interviewer.db';
 
 Future initializeDatabase() async {
   final folderPath = await getDatabasesPath();
-  await deleteDatabase(folderPath);
-
   final filePath = join(folderPath, _dbName);
-  final db = await openDatabase(
-    filePath,
-    version: 1,
-    onCreate: (db, _) => _runInitialScript(db),
-  );
+  final db = await openDatabase(filePath, version: 1, onCreate: _onCreate);
   Db.instance = db;
+}
+
+Future _onCreate(Database db, int version) async {
+  await _runInitialScript(db);
+  await _addTemplateCompany(db);
 }
 
 Future _runInitialScript(Database db) async {
@@ -24,6 +25,11 @@ Future _runInitialScript(Database db) async {
   for (final query in queries) {
     await db.execute(query);
   }
+}
+
+Future _addTemplateCompany(Database db) async {
+  final company = Company.withName('Template', isTemplate: true);
+  await companies.add(db, company);
 }
 
 class Db {

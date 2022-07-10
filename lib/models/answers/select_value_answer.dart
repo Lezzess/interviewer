@@ -24,7 +24,6 @@ class SelectValueAnswer extends Answer {
   Map<String, dynamic> toDb() {
     return {
       'id': id,
-      'type': type.name,
       'is_multiselect': isMultiselect ? 1 : 0,
       'question_id': questionId
     };
@@ -40,7 +39,7 @@ class SelectValueAnswer extends Answer {
         );
 
   @override
-  Answer clone({bool generateNewGuid = false}) {
+  Answer clone({bool generateNewGuid = false, String? questionId}) {
     final id = generateNewGuid ? const Uuid().v4() : this.id;
     final newValues = values
         .map((value) => value.clone(generateNewGuid: generateNewGuid))
@@ -49,7 +48,7 @@ class SelectValueAnswer extends Answer {
       id: id,
       values: newValues,
       isMultiselect: isMultiselect,
-      questionId: questionId,
+      questionId: questionId ?? this.questionId,
     );
   }
 }

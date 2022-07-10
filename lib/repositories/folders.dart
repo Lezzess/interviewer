@@ -14,6 +14,24 @@ Future add(DatabaseExecutor txn, Folder folder) async {
   await txn.insert('folders', entry);
 }
 
+Future update(DatabaseExecutor txn, Folder folder) async {
+  final entry = folder.toDb();
+  await txn.update(
+    'folders',
+    entry,
+    where: 'id = ?',
+    whereArgs: [folder.id],
+  );
+}
+
+Future remove(DatabaseExecutor txn, Folder folder) async {
+  await txn.delete(
+    'folders',
+    where: 'id = ?',
+    whereArgs: [folder.id],
+  );
+}
+
 Future clear(DatabaseExecutor txn) async {
   await txn.delete('folders');
 }

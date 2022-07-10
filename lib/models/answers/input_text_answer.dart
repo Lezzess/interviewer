@@ -24,8 +24,7 @@ class InputTextAnswer extends Answer {
   Map<String, dynamic> toDb() {
     return {
       'id': id,
-      'type': type.name,
-      'value_text': text,
+      'text': text,
       'is_multiline': isMultiline ? 1 : 0,
       'question_id': questionId,
     };
@@ -34,18 +33,18 @@ class InputTextAnswer extends Answer {
   InputTextAnswer.fromDb(Map<String, dynamic> entry)
       : this(
           id: entry['id'],
-          text: entry['value_text'],
+          text: entry['text'],
           isMultiline: entry['is_multiline'] == 1,
           questionId: entry['question_id'],
         );
 
   @override
-  Answer clone({bool generateNewGuid = false}) {
+  Answer clone({bool generateNewGuid = false, String? questionId}) {
     final id = generateNewGuid ? const Uuid().v4() : this.id;
     return InputTextAnswer(
       id: id,
       text: text,
-      questionId: questionId,
+      questionId: questionId ?? this.questionId,
       isMultiline: isMultiline,
     );
   }

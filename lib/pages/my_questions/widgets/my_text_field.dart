@@ -12,16 +12,17 @@ class MyTextField extends StatelessWidget {
   final int? minLines;
   final int? maxLines;
 
-  const MyTextField(
-      {super.key,
-      required this.type,
-      this.controller,
-      this.onChanged,
-      this.enabled = true,
-      required this.inputType,
-      this.hintText,
-      this.minLines,
-      this.maxLines});
+  const MyTextField({
+    super.key,
+    required this.type,
+    this.controller,
+    this.onChanged,
+    this.enabled = true,
+    required this.inputType,
+    this.hintText,
+    this.minLines,
+    this.maxLines,
+  });
 
   @override
   Widget build(BuildContext context) {

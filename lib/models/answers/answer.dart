@@ -7,5 +7,5 @@ abstract class Answer {
 
   Answer(this.id, this.type, this.questionId);
 
-  Answer clone({bool generateNewGuid = false});
+  Answer clone({bool generateNewGuid = false, String? questionId});
 }

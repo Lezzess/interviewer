@@ -16,11 +16,11 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await initializeDatabase();
+  await initializeDatabase();
   // await seedData();
 
-  final appState = createMock();
-  // final appState = await loadState();
+  // final appState = createMock();
+  final appState = await loadState();
   runApp(MyApp(
     state: appState,
   ));
@@ -31,7 +31,6 @@ class MyApp extends StatelessWidget {
 
   const MyApp({super.key, required this.state});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     // const black = Color(0xff0f0a0a);

@@ -41,7 +41,10 @@ class Question {
 
   Question clone({bool generateNewGuid = false, String? companyId}) {
     final id = generateNewGuid ? const Uuid().v4() : this.id;
-    final answerCopy = answer?.clone();
+    final answerCopy = answer?.clone(
+      generateNewGuid: generateNewGuid,
+      questionId: id,
+    );
     return Question(
       id: id,
       companyId: companyId ?? this.companyId,

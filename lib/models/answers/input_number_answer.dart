@@ -21,8 +21,7 @@ class InputNumberAnswer extends Answer {
   Map<String, dynamic> toDb() {
     return {
       'id': id,
-      'type': type.name,
-      'value_double': value,
+      'value': value,
       'question_id': questionId,
     };
   }
@@ -30,17 +29,17 @@ class InputNumberAnswer extends Answer {
   InputNumberAnswer.fromDb(Map<String, dynamic> entry)
       : this(
           id: entry['id'],
-          value: entry['value_double'],
+          value: entry['value'],
           questionId: entry['question_id'],
         );
 
   @override
-  Answer clone({bool generateNewGuid = false}) {
+  Answer clone({bool generateNewGuid = false, String? questionId}) {
     final id = generateNewGuid ? const Uuid().v4() : this.id;
     return InputNumberAnswer(
       id: id,
       value: value,
-      questionId: questionId,
+      questionId: questionId ?? this.questionId,
     );
   }
 }
