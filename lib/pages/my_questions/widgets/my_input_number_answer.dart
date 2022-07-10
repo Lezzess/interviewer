@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_text_field.dart';
+import 'package:interviewer/states/questions_state.dart';
 import 'package:interviewer/utils/doubles.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
-
-typedef OnNumberChanged = void Function(
-    InputNumberAnswer answer, double? newNumber);
 
 class MyInputNumberAnswer extends StatefulWidget {
   final InputNumberAnswer? answer;
-  final OnNumberChanged? onNumberChanged;
   final int debounceTime;
   final bool enabled;
 
   const MyInputNumberAnswer(
-      {super.key,
-      this.answer,
-      this.onNumberChanged,
-      this.debounceTime = 500,
-      this.enabled = true})
+      {super.key, this.answer, this.debounceTime = 500, this.enabled = true})
       : assert(!enabled || enabled && answer != null,
             'If input number field is enabled, it should have answer != null');
 
@@ -41,7 +35,10 @@ class _MyInputNumberAnswerState extends State<MyInputNumberAnswer> {
         .skip(1)
         .debounceTime(Duration(milliseconds: widget.debounceTime))
         .distinct()
-        .listen((value) => widget.onNumberChanged?.call(widget.answer!, value));
+        .listen((value) => context.read<QuestionsState>().setAnswerValue(
+              widget.answer!,
+              value,
+            ));
   }
 
   @override

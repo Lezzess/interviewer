@@ -1,8 +1,8 @@
 import 'package:uuid/uuid.dart';
 
 class Company {
-  final String id;
-  final String name;
+  String id;
+  String name;
   bool isTemplate;
 
   Company.withName(this.name, {this.isTemplate = false})
@@ -10,15 +10,22 @@ class Company {
 
   Company({required this.id, required this.name, this.isTemplate = false});
 
-  Company copyWith({String? id, String? name, bool? isTemplate}) {
-    return Company(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      isTemplate: isTemplate ?? this.isTemplate,
-    );
+  Map<String, dynamic> toDb() {
+    return {'id': id, 'name': name, 'is_template': isTemplate};
   }
 
+  Company.fromDb(Map<String, dynamic> entry)
+      : this(
+          id: entry['id'],
+          name: entry['name'],
+          isTemplate: entry['is_template'] == 1,
+        );
+
   Company clone() {
-    return copyWith();
+    return Company(
+      id: id,
+      name: name,
+      isTemplate: isTemplate,
+    );
   }
 }

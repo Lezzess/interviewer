@@ -1,11 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:interviewer/models/folder.dart';
-import 'package:interviewer/redux/app/state.dart';
-import 'package:interviewer/redux/folders/actions.dart';
-import 'package:interviewer/redux/folders/selectors.dart';
-import 'package:redux/redux.dart';
+import 'package:interviewer/states/folders_state.dart';
+import 'package:interviewer/states/questions_state.dart';
+import 'package:provider/provider.dart';
 
 class MyFolders extends StatefulWidget {
   const MyFolders({Key? key}) : super(key: key);
@@ -17,44 +14,41 @@ class MyFolders extends StatefulWidget {
 class _MyFoldersState extends State<MyFolders> {
   late TextEditingController _folderNameController;
 
-  void onInit(_) {
+  @override
+  void initState() {
     _folderNameController = TextEditingController();
+    super.initState();
   }
 
-  void onDispose(_) {
+  @override
+  void dispose() {
     _folderNameController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, _ViewModel>(
-      distinct: true,
-      onInit: onInit,
-      onDispose: onDispose,
-      converter: (store) => _ViewModel(
-          folders: selectAllFolders(store.state.folders),
-          onAdd: (context) => _onAddClicked(context, store),
-          onEdit: (folder) => _onEditClicked(context, store, folder),
-          onRemove: (folder) => _onRemoveClicked(store, folder),
-          onReorder: (oldIndex, newIndex) =>
-              _onReorder(store, oldIndex, newIndex)),
-      builder: (context, viewModel) => Scaffold(
-        appBar: AppBar(title: const Text('Folders')),
-        body: ReorderableListView.builder(
-          itemCount: viewModel.folders.length,
-          itemBuilder: (context, index) => _listItem(index, viewModel),
-          onReorder: viewModel.onReorder,
+    final state = context.watch<FoldersState>();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Folders')),
+      body: ReorderableListView.builder(
+        itemCount: state.folders.length,
+        itemBuilder: (context, index) => _listItem(index, state),
+        onReorder: (oldIndex, newIndex) => _onReorder(
+          context,
+          oldIndex,
+          newIndex,
         ),
-        floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () => viewModel.onAdd(context),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () => _onAddClicked(context),
       ),
     );
   }
 
-  Widget _listItem(int index, _ViewModel viewModel) {
-    final folder = viewModel.folders[index];
+  Widget _listItem(int index, FoldersState state) {
+    final folder = state.folders[index];
     return ListTile(
       key: ValueKey(index),
       title: Text(folder.name),
@@ -67,7 +61,7 @@ class _MyFoldersState extends State<MyFolders> {
               Icons.edit,
               color: Theme.of(context).unselectedWidgetColor,
             ),
-            onPressed: () => viewModel.onEdit(folder),
+            onPressed: () => _onEditClicked(context, folder),
           ),
           // Remove
           IconButton(
@@ -75,14 +69,14 @@ class _MyFoldersState extends State<MyFolders> {
               Icons.delete,
               color: Theme.of(context).unselectedWidgetColor,
             ),
-            onPressed: () => viewModel.onRemove(folder),
+            onPressed: () => _onRemoveClicked(context, folder),
           )
         ],
       ),
     );
   }
 
-  void _onAddClicked(BuildContext context, Store<AppState> store) async {
+  void _onAddClicked(BuildContext context) async {
     final dialogResult = await _showFolderDialog(
       text: '',
       saveButton: 'Add',
@@ -91,14 +85,13 @@ class _MyFoldersState extends State<MyFolders> {
 
     final folderName = (dialogResult as String?)?.trim();
     if (folderName != null) {
-      final order = store.state.folders.all.length;
-      store.dispatch(AddFolderAction(name: folderName, order: order));
+      final state = context.read<FoldersState>();
+      state.add(folderName);
     }
   }
 
   void _onEditClicked(
     BuildContext context,
-    Store<AppState> store,
     Folder folder,
   ) async {
     final dialogResult = await _showFolderDialog(
@@ -109,16 +102,20 @@ class _MyFoldersState extends State<MyFolders> {
 
     final folderName = (dialogResult as String?)?.trim();
     if (folderName != null) {
-      store.dispatch(UpdateFolderAction(id: folder.id, name: folderName));
+      final state = context.read<FoldersState>();
+      state.update(folder, folderName);
     }
   }
 
-  void _onRemoveClicked(Store<AppState> store, Folder folder) async {
-    store.dispatch(RemoveFolderAction(folder.id));
+  void _onRemoveClicked(BuildContext context, Folder folder) async {
+    final foldersState = context.read<FoldersState>();
+    final questionsState = context.read<QuestionsState>();
+    foldersState.remove(folder, questionsState);
   }
 
-  void _onReorder(Store<AppState> store, int oldIndex, int newIndex) {
-    store.dispatch(ReorderFolderAction(oldIndex: oldIndex, newIndex: newIndex));
+  void _onReorder(BuildContext context, int oldIndex, int newIndex) {
+    final state = context.read<FoldersState>();
+    state.reorder(oldIndex, newIndex);
   }
 
   Future _showFolderDialog(
@@ -149,33 +146,4 @@ class _MyFoldersState extends State<MyFolders> {
       ),
     );
   }
-}
-
-typedef OnAdd = void Function(BuildContext context);
-typedef OnEdit = void Function(Folder folder);
-typedef OnRemove = void Function(Folder folder);
-typedef OnReorder = void Function(int oldIndex, int newIndex);
-
-class _ViewModel {
-  final List<Folder> folders;
-  final OnAdd onAdd;
-  final OnEdit onEdit;
-  final OnRemove onRemove;
-  final OnReorder onReorder;
-
-  _ViewModel(
-      {required this.folders,
-      required this.onAdd,
-      required this.onEdit,
-      required this.onRemove,
-      required this.onReorder});
-
-  @override
-  bool operator ==(Object other) =>
-      other is _ViewModel &&
-      other.runtimeType == runtimeType &&
-      listEquals(other.folders, folders);
-
-  @override
-  int get hashCode => hashList(folders);
 }

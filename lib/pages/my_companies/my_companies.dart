@@ -1,13 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:interviewer/models/company.dart';
 import 'package:interviewer/pages/my_questions/my_questions_arguments.dart';
 import 'package:interviewer/pages/routes.dart';
-import 'package:interviewer/redux/app/state.dart';
-import 'package:interviewer/redux/companies/actions.dart';
-import 'package:interviewer/redux/companies/selectors.dart';
-import 'package:redux/redux.dart';
+import 'package:interviewer/states/companies_state.dart';
+import 'package:interviewer/states/questions_state.dart';
+import 'package:provider/provider.dart';
 
 class MyCompanies extends StatefulWidget {
   const MyCompanies({Key? key}) : super(key: key);
@@ -19,42 +16,36 @@ class MyCompanies extends StatefulWidget {
 class _MyCompaniesState extends State<MyCompanies> {
   late TextEditingController _companyNameController;
 
-  void onInit(_) {
+  @override
+  void initState() {
     _companyNameController = TextEditingController();
+    super.initState();
   }
 
-  void onDispose(_) {
+  @override
+  void dispose() {
     _companyNameController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StoreConnector<AppState, _ViewModel>(
-      distinct: true,
-      onInit: onInit,
-      onDispose: onDispose,
-      converter: (store) => _ViewModel(
-        companies: selectAllCompanies(store.state.companies),
-        onAdd: (context) => _onAddClicked(context, store),
-        onEdit: (company) => _onEditClicked(context, store, company),
-        onRemove: (company) => _onRemoveClicked(store, company),
+    final state = context.watch<CompaniesState>();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Companies')),
+      body: ListView.builder(
+        itemCount: state.companies.length,
+        itemBuilder: (context, index) => _listItem(context, state, index),
       ),
-      builder: (context, viewModel) => Scaffold(
-        appBar: AppBar(title: const Text('Companies')),
-        body: ListView.builder(
-          itemCount: viewModel.companies.length,
-          itemBuilder: (context, index) => _listItem(context, index, viewModel),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () => viewModel.onAdd(context),
-        ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () => _onAddClicked(context),
       ),
     );
   }
 
-  Widget _listItem(BuildContext context, int index, _ViewModel viewModel) {
-    final company = viewModel.companies[index];
+  Widget _listItem(BuildContext context, CompaniesState state, int index) {
+    final company = state.companies[index];
 
     List<Widget> editButtons;
     if (company.isTemplate) {
@@ -68,7 +59,7 @@ class _MyCompaniesState extends State<MyCompanies> {
             Icons.edit,
             color: Theme.of(context).unselectedWidgetColor,
           ),
-          onPressed: () => viewModel.onEdit(company),
+          onPressed: () => _onEditClicked(context, company),
         ),
         // Remove
         IconButton(
@@ -76,7 +67,7 @@ class _MyCompaniesState extends State<MyCompanies> {
             Icons.delete,
             color: Theme.of(context).unselectedWidgetColor,
           ),
-          onPressed: () => viewModel.onRemove(company),
+          onPressed: () => _onRemoveClicked(context, company),
         )
       ];
     }
@@ -96,7 +87,7 @@ class _MyCompaniesState extends State<MyCompanies> {
     await Navigator.pushNamed(context, Routes.questions, arguments: args);
   }
 
-  void _onAddClicked(BuildContext context, Store<AppState> store) async {
+  void _onAddClicked(BuildContext context) async {
     final dialogResult = await _showCompanyDialog(
       text: '',
       saveButton: 'Add',
@@ -105,13 +96,13 @@ class _MyCompaniesState extends State<MyCompanies> {
 
     final companyName = (dialogResult as String?)?.trim();
     if (companyName != null) {
-      store.dispatch(AddCompanyAction(name: companyName));
+      final state = context.read<CompaniesState>();
+      state.add(companyName);
     }
   }
 
   void _onEditClicked(
     BuildContext context,
-    Store<AppState> store,
     Company company,
   ) async {
     final dialogResult = await _showCompanyDialog(
@@ -122,12 +113,15 @@ class _MyCompaniesState extends State<MyCompanies> {
 
     final companyName = (dialogResult as String?)?.trim();
     if (companyName != null) {
-      store.dispatch(UpdateCompanyAction(id: company.id, name: companyName));
+      final state = context.read<CompaniesState>();
+      state.update(company, companyName);
     }
   }
 
-  void _onRemoveClicked(Store<AppState> store, Company company) async {
-    store.dispatch(RemoveCompanyAction(company.id));
+  void _onRemoveClicked(BuildContext context, Company company) async {
+    final companiesState = context.read<CompaniesState>();
+    final questionsState = context.read<QuestionsState>();
+    companiesState.remove(company, questionsState);
   }
 
   Future _showCompanyDialog(
@@ -159,31 +153,4 @@ class _MyCompaniesState extends State<MyCompanies> {
       ),
     );
   }
-}
-
-typedef OnAdd = void Function(BuildContext context);
-typedef OnEdit = void Function(Company company);
-typedef OnRemove = void Function(Company company);
-
-class _ViewModel {
-  final List<Company> companies;
-  final OnAdd onAdd;
-  final OnEdit onEdit;
-  final OnRemove onRemove;
-
-  _ViewModel({
-    required this.companies,
-    required this.onAdd,
-    required this.onEdit,
-    required this.onRemove,
-  });
-
-  @override
-  bool operator ==(Object other) =>
-      other is _ViewModel &&
-      other.runtimeType == runtimeType &&
-      listEquals(other.companies, companies);
-
-  @override
-  int get hashCode => hashList(companies);
 }

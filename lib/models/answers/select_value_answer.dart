@@ -4,29 +4,53 @@ import 'package:uuid/uuid.dart';
 
 class SelectValueAnswer extends Answer {
   List<SelectValue> values;
-  bool isMultipleSelect;
+  bool isMultiselect;
 
-  SelectValueAnswer.empty()
-      : this(id: const Uuid().v4(), values: [], isMultipleSelect: false);
+  SelectValueAnswer.empty(String questionId)
+      : this(
+          id: const Uuid().v4(),
+          values: [],
+          isMultiselect: false,
+          questionId: questionId,
+        );
 
-  SelectValueAnswer(
-      {required String id,
-      required this.values,
-      required this.isMultipleSelect})
-      : super(id, AnswerType.selectValue);
+  SelectValueAnswer({
+    required String id,
+    required this.values,
+    required this.isMultiselect,
+    required String questionId,
+  }) : super(id, AnswerType.selectValue, questionId);
 
-  SelectValueAnswer copyWith(
-      {String? id, List<SelectValue>? values, bool? isMultipleSelect}) {
-    return SelectValueAnswer(
-        id: id ?? this.id,
-        values: values ?? this.values,
-        isMultipleSelect: isMultipleSelect ?? this.isMultipleSelect);
+  Map<String, dynamic> toDb() {
+    return {
+      'id': id,
+      'type': type.name,
+      'is_multiselect': isMultiselect ? 1 : 0,
+      'question_id': questionId
+    };
   }
 
+  SelectValueAnswer.fromDb(
+    Map<String, dynamic> entry,
+  ) : this(
+          id: entry['id'],
+          values: [],
+          isMultiselect: entry['is_multiselect'] == 1,
+          questionId: entry['question_id'],
+        );
+
   @override
-  Answer clone() {
-    final newValues = values.map((value) => value.clone()).toList();
-    return copyWith(values: newValues);
+  Answer clone({bool generateNewGuid = false}) {
+    final id = generateNewGuid ? const Uuid().v4() : this.id;
+    final newValues = values
+        .map((value) => value.clone(generateNewGuid: generateNewGuid))
+        .toList();
+    return SelectValueAnswer(
+      id: id,
+      values: newValues,
+      isMultiselect: isMultiselect,
+      questionId: questionId,
+    );
   }
 }
 
@@ -40,17 +64,34 @@ class SelectValue {
         value = '',
         isSelected = false;
 
-  SelectValue(
-      {required this.id, required this.value, required this.isSelected});
+  SelectValue({
+    required this.id,
+    required this.value,
+    required this.isSelected,
+  });
 
-  SelectValue copyWith({String? id, String? value, bool? isSelected}) {
-    return SelectValue(
-        id: id ?? this.id,
-        value: value ?? this.value,
-        isSelected: isSelected ?? this.isSelected);
+  Map<String, dynamic> toDb(String answerId) {
+    return {
+      'id': id,
+      'value': value,
+      'is_selected': isSelected ? 1 : 0,
+      'answer_id': answerId
+    };
   }
 
-  SelectValue clone() {
-    return copyWith();
+  SelectValue.fromDb(Map<String, dynamic> entry)
+      : this(
+          id: entry['id'],
+          value: entry['value'],
+          isSelected: entry['is_selected'] == 1,
+        );
+
+  SelectValue clone({bool generateNewGuid = false}) {
+    final id = generateNewGuid ? const Uuid().v4() : this.id;
+    return SelectValue(
+      id: id,
+      value: value,
+      isSelected: isSelected,
+    );
   }
 }

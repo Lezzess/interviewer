@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:interviewer/models/answers/answer.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/select_value_answer.dart';
@@ -8,26 +6,22 @@ import 'package:interviewer/models/question.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_select_value_answer.dart';
-import 'package:interviewer/redux/answers/actions.dart';
-import 'package:interviewer/redux/answers/selectors.dart';
-import 'package:interviewer/redux/app/state.dart';
-import 'package:interviewer/redux/questions/actions.dart';
-import 'package:interviewer/redux/questions/selectors.dart';
+import 'package:interviewer/states/questions_state.dart';
 import 'package:interviewer/styles/app_styles.dart';
-import 'package:redux/redux.dart';
+import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-typedef OnEdit = void Function(String questionId);
-typedef OnRemove = void Function(String questionId);
+typedef OnEdit = void Function(Question question);
+typedef OnRemove = void Function(Question question);
 
 class MyQuestion extends StatefulWidget {
-  final String questionId;
+  final Question question;
   final OnEdit? onEdit;
   final OnRemove? onRemove;
 
   const MyQuestion({
     super.key,
-    required this.questionId,
+    required this.question,
     this.onEdit,
     this.onRemove,
   });
@@ -38,24 +32,26 @@ class MyQuestion extends StatefulWidget {
 
 class _MyQuestionState extends State<MyQuestion> {
   bool isNoteVisible = false;
-  late BehaviorSubject<String> _subject;
+  late BehaviorSubject<String> _noteSubject;
   late TextEditingController _textController;
 
-  void _onInit(Store<AppState> store) {
-    final question = selectQuestion(store.state.questions, widget.questionId);
-
-    _textController = TextEditingController(text: question.note);
-    _subject = BehaviorSubject<String>.seeded(question.note ?? '');
-    _subject.stream
+  @override
+  void initState() {
+    _textController = TextEditingController(text: widget.question.note);
+    _noteSubject = BehaviorSubject<String>.seeded(widget.question.note ?? '');
+    _noteSubject.stream
         .skip(1)
         .debounceTime(const Duration(milliseconds: 500))
         .distinct()
         .listen((value) =>
-            store.dispatch(AddQuestionNoteAction(question.id, value)));
+            context.read<QuestionsState>().saveNote(widget.question, value));
+    super.initState();
   }
 
-  void _onDispose(_) {
+  @override
+  void dispose() {
     _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -63,31 +59,19 @@ class _MyQuestionState extends State<MyQuestion> {
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15, 0, 15, 5),
-        child: StoreConnector<AppState, _ViewModel>(
-          onInit: _onInit,
-          onDispose: _onDispose,
-          converter: (store) => _ViewModel.fromStore(
-            store,
-            widget.questionId,
-            onNoteChanged: (noteText) => _subject.add(noteText),
-          ),
-          builder: (context, viewmodel) => Column(
-            children: [
-              _questionHeader(context, viewmodel.question),
-              Stack(
-                children: [
-                  _answer(context, viewmodel.answer),
-                  if (isNoteVisible) _note(context, viewmodel.onNoteChanged)
-                ],
-              )
-            ],
-          ),
+        child: Column(
+          children: [
+            _questionHeader(context),
+            Stack(
+              children: [_answer(context), if (isNoteVisible) _note(context)],
+            )
+          ],
         ),
       ),
     );
   }
 
-  Widget _questionHeader(BuildContext context, Question question) {
+  Widget _questionHeader(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
           border: Border(
@@ -102,7 +86,7 @@ class _MyQuestionState extends State<MyQuestion> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  question.text,
+                  widget.question.text ?? '',
                   style: Theme.of(context).textTheme.questionText,
                 ),
               ),
@@ -122,7 +106,7 @@ class _MyQuestionState extends State<MyQuestion> {
               Icons.edit,
               color: Theme.of(context).unselectedWidgetColor,
             ),
-            onPressed: () => widget.onEdit?.call(question.id),
+            onPressed: () => widget.onEdit?.call(widget.question),
           ),
           IconButton(
             padding: const EdgeInsets.fromLTRB(5, 13, 5, 5),
@@ -131,33 +115,21 @@ class _MyQuestionState extends State<MyQuestion> {
               Icons.delete,
               color: Theme.of(context).unselectedWidgetColor,
             ),
-            onPressed: () => widget.onRemove?.call(question.id),
+            onPressed: () => widget.onRemove?.call(widget.question),
           )
         ],
       ),
     );
   }
 
-  Widget _answer(BuildContext context, Answer? answer) {
+  Widget _answer(BuildContext context) {
+    final answer = widget.question.answer;
     if (answer is SelectValueAnswer) {
-      return StoreConnector<AppState, OnAnswerSelected>(
-        converter: (store) => (answer, value, isSelected) => store
-            .dispatch(SetSelectAnswerValueAction(answer.id, value, isSelected)),
-        builder: (context, callback) =>
-            MySelectValueAnswer(answer: answer, onChanged: callback),
-      );
+      return MySelectValueAnswer(answer: answer);
     } else if (answer is InputNumberAnswer) {
-      return StoreConnector<AppState, OnNumberChanged>(
-        converter: (store) => (answer, newValue) =>
-            store.dispatch(SetInputNumberValueAction(answer.id, newValue)),
-        builder: (context, callback) => _answerInputNumber(answer, callback),
-      );
+      return _answerInputNumber(answer);
     } else if (answer is InputTextAnswer) {
-      return StoreConnector<AppState, OnTextChanged>(
-        converter: (store) => (answer, newText) =>
-            store.dispatch(SetInputTextValueAction(answer.id, newText)),
-        builder: (context, callback) => _answerInputText(answer, callback),
-      );
+      return _answerInputText(answer);
     }
 
     return const ListTile(
@@ -166,7 +138,7 @@ class _MyQuestionState extends State<MyQuestion> {
     );
   }
 
-  Widget _note(BuildContext context, OnNoteChanged onNoteChanged) {
+  Widget _note(BuildContext context) {
     return Positioned.fill(
       child: Padding(
         padding: const EdgeInsets.only(top: 5),
@@ -186,36 +158,33 @@ class _MyQuestionState extends State<MyQuestion> {
             maxLines: null,
             expands: true,
             autofocus: true,
-            onChanged: onNoteChanged,
+            onChanged: (text) => _noteSubject.add(text),
           ),
         ),
       ),
     );
   }
 
-  Widget _answerInputNumber(
-      InputNumberAnswer answer, OnNumberChanged callback) {
+  Widget _answerInputNumber(InputNumberAnswer answer) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15),
         child: MyInputNumberAnswer(
           answer: answer,
-          onNumberChanged: callback,
           debounceTime: 500,
         ),
       ),
     );
   }
 
-  Widget _answerInputText(InputTextAnswer answer, OnTextChanged callback) {
+  Widget _answerInputText(InputTextAnswer answer) {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 15),
         child: Align(
           alignment: Alignment.centerLeft,
           child: MyInputTextAnswer(
             answer: answer,
-            onTextChanged: callback,
             debounceTime: 500,
           ),
         ));
@@ -225,34 +194,5 @@ class _MyQuestionState extends State<MyQuestion> {
     setState(() {
       isNoteVisible = !isNoteVisible;
     });
-  }
-}
-
-typedef OnNoteChanged = void Function(String noteText);
-
-class _ViewModel {
-  final Question question;
-  final Answer? answer;
-  final OnNoteChanged onNoteChanged;
-
-  _ViewModel({
-    required this.question,
-    required this.answer,
-    required this.onNoteChanged,
-  });
-
-  static _ViewModel fromStore(
-    Store<AppState> store,
-    String questionId, {
-    required OnNoteChanged onNoteChanged,
-  }) {
-    final question = selectQuestion(store.state.questions, questionId);
-    final answer = selectAnswer(store.state.answers, question.answerId);
-
-    return _ViewModel(
-      question: question,
-      answer: answer,
-      onNoteChanged: onNoteChanged,
-    );
   }
 }

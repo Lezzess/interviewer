@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:interviewer/models/answers/answer.dart';
 import 'package:interviewer/models/answers/answer_type.dart';
 import 'package:interviewer/models/answers/input_number_answer.dart';
 import 'package:interviewer/models/answers/input_text_answer.dart';
@@ -11,42 +9,30 @@ import 'package:interviewer/pages/my_add_edit_question/widgets/my_dropdown.dart'
 import 'package:interviewer/pages/my_add_edit_question/widgets/my_options_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_number_answer.dart';
 import 'package:interviewer/pages/my_questions/widgets/my_input_text_answer.dart';
-import 'package:interviewer/redux/app/state.dart';
-import 'package:interviewer/redux/folders/selectors.dart';
+import 'package:interviewer/states/folders_state.dart';
+import 'package:provider/provider.dart';
 
 class MyAddEditQuestion extends StatefulWidget {
-  final Question? question;
-  final Answer? answer;
-  final Folder? folder;
-  final String companyId;
+  final Question question;
 
-  const MyAddEditQuestion(
-      {super.key,
-      required this.question,
-      required this.answer,
-      required this.folder,
-      required this.companyId});
+  const MyAddEditQuestion({super.key, required this.question});
 
   @override
   State<MyAddEditQuestion> createState() => _MyAddEditQuestionState();
 }
 
 class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
+  late Question question;
   final List<AnswerType> answerTypes = [
     AnswerType.selectValue,
     AnswerType.inputNumber,
     AnswerType.inputText
   ];
-  late Question question;
-  late Answer? answer;
-  late Folder? folder;
   late TextEditingController questionController;
 
   @override
   void initState() {
-    question = widget.question?.clone() ?? Question.empty(widget.companyId);
-    answer = widget.answer?.clone();
-    folder = widget.folder;
+    question = widget.question;
     questionController = TextEditingController(text: question.text);
     super.initState();
   }
@@ -72,7 +58,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
                   children: [
                     _questionInput(),
                     _answerTypeInput(),
-                    _questionFolderInput(),
+                    _questionFolderInput(context),
                     _answerValuesInput()
                   ],
                 ),
@@ -115,7 +101,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
           children: [
             MyDropdown<AnswerType>(
               values: answerTypes,
-              selectedValue: answer?.type,
+              selectedValue: question.answer?.type,
               onValueChanged: _onAnswerTypeChanged,
               toStringConverter: _mapAnswerTypeToString,
               hintText: 'Select answer type',
@@ -128,25 +114,26 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     );
   }
 
-  Widget _questionFolderInput() {
-    return StoreConnector<AppState, List<Folder>>(
-      converter: (store) => selectAllFolders(store.state.folders),
-      builder: (context, folders) => Card(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
-          child: Column(
-            children: [
-              MyDropdown<Folder>(
-                values: folders,
-                selectedValue: folder,
-                onValueChanged: _onFolderChanged,
-                toStringConverter: (folder) => folder.name,
-                hintText: 'Select folder',
-                labelText: 'Folder',
-              )
-            ],
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-          ),
+  Widget _questionFolderInput(BuildContext context) {
+    final folders = context.watch<FoldersState>().folders;
+    final selectedFolder = question.folderId == null
+        ? null
+        : folders.firstWhere((f) => f.id == question.folderId);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+        child: Column(
+          children: [
+            MyDropdown<Folder>(
+              values: folders,
+              selectedValue: selectedFolder,
+              onValueChanged: _onFolderChanged,
+              toStringConverter: (folder) => folder.name,
+              hintText: 'Select folder',
+              labelText: 'Folder',
+            )
+          ],
+          crossAxisAlignment: CrossAxisAlignment.stretch,
         ),
       ),
     );
@@ -156,7 +143,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     String cardTitle;
     Widget? answerWidget;
 
-    switch (answer?.type) {
+    switch (question.answer?.type) {
       case AnswerType.selectValue:
         cardTitle = 'Options';
         answerWidget = _answerInputOptions();
@@ -197,7 +184,9 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
   }
 
   bool _isValid() {
-    return question.text != '' && answer != null && folder != null;
+    return question.text != '' &&
+        question.answer != null &&
+        question.folderId != null;
   }
 
   String _mapAnswerTypeToString(AnswerType type) {
@@ -224,7 +213,7 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
     return Align(
         alignment: Alignment.topLeft,
         child: MyOptionsAnswer(
-          answer: answer as SelectValueAnswer,
+          answer: question.answer as SelectValueAnswer,
         ));
   }
 
@@ -248,53 +237,49 @@ class _MyAddEditQuestionState extends State<MyAddEditQuestion> {
 
   void _onQuestionTextChanged(String? newText) {
     setState(() {
-      question.text = newText?.trim() ?? '';
+      newText = newText?.trim();
+      if (newText != null && newText!.isEmpty) {
+        newText = null;
+      }
+
+      question.text = newText;
     });
   }
 
   void _onAnswerTypeChanged(AnswerType? answerType) {
-    if (answer != null && answer!.type == answerType) {
+    if (question.answer != null && question.answer!.type == answerType) {
       return;
     }
 
     setState(() {
       switch (answerType) {
         case AnswerType.inputNumber:
-          answer = InputNumberAnswer.empty();
+          question.answer = InputNumberAnswer.empty(question.id);
           break;
         case AnswerType.inputText:
-          answer = InputTextAnswer.empty();
+          question.answer = InputTextAnswer.empty(question.id);
           break;
         case AnswerType.selectValue:
-          answer = SelectValueAnswer.empty();
+          question.answer = SelectValueAnswer.empty(question.id);
           break;
         default:
-          answer = null;
+          question.answer = null;
           break;
       }
     });
   }
 
   void _onFolderChanged(Folder? newFolder) {
-    if (newFolder == folder) {
+    if (newFolder == null || newFolder.id == question.folderId) {
       return;
     }
 
     setState(() {
-      folder = newFolder;
+      question.folderId = newFolder.id;
     });
   }
 
   void _onSaveClicked() {
-    final output = AddEditQuestionOutput(question, answer, folder);
-    Navigator.pop(context, output);
+    Navigator.pop(context, widget.question);
   }
-}
-
-class AddEditQuestionOutput {
-  final Question question;
-  final Answer? answer;
-  final Folder? folder;
-
-  AddEditQuestionOutput(this.question, this.answer, this.folder);
 }

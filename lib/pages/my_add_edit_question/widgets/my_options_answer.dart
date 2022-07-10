@@ -122,7 +122,7 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
             height: 30,
             child: Switch(
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                value: _answer.isMultipleSelect,
+                value: _answer.isMultiselect,
                 onChanged: _onMultipleSelectChanged),
           ),
         ))
@@ -132,7 +132,7 @@ class _MyOptionsAnswerState extends State<MyOptionsAnswer> {
 
   void _onMultipleSelectChanged(bool? newValue) {
     setState(() {
-      _answer.isMultipleSelect = newValue ?? false;
+      _answer.isMultiselect = newValue ?? false;
       for (final value in _answer.values) {
         value.isSelected = false;
       }

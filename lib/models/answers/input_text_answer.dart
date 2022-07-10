@@ -5,17 +5,42 @@ import 'package:uuid/uuid.dart';
 class InputTextAnswer extends Answer {
   String text;
 
-  InputTextAnswer.empty() : this(id: const Uuid().v4(), text: '');
+  InputTextAnswer.empty(String questionId)
+      : this(
+          id: const Uuid().v4(),
+          text: '',
+          questionId: questionId,
+        );
 
-  InputTextAnswer({required String id, required this.text})
-      : super(id, AnswerType.inputText);
+  InputTextAnswer({
+    required String id,
+    required this.text,
+    required String questionId,
+  }) : super(id, AnswerType.inputText, questionId);
 
-  InputTextAnswer copyWith({String? id, String? text}) {
-    return InputTextAnswer(id: id ?? this.id, text: text ?? this.text);
+  Map<String, dynamic> toDb() {
+    return {
+      'id': id,
+      'type': type.name,
+      'value_text': text,
+      'question_id': questionId,
+    };
   }
 
+  InputTextAnswer.fromDb(Map<String, dynamic> entry)
+      : this(
+          id: entry['id'],
+          text: entry['value_text'],
+          questionId: entry['question_id'],
+        );
+
   @override
-  Answer clone() {
-    return copyWith();
+  Answer clone({bool generateNewGuid = false}) {
+    final id = generateNewGuid ? const Uuid().v4() : this.id;
+    return InputTextAnswer(
+      id: id,
+      text: text,
+      questionId: questionId,
+    );
   }
 }
