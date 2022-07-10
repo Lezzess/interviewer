@@ -32,7 +32,6 @@ class MyStickyAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<FoldersState>();
     return DefaultTabController(
-      key: UniqueKey(),
       initialIndex: 0,
       // One more for the "All" tab
       length: state.folders.length + 1,

@@ -53,7 +53,7 @@ class _MyInputTextAnswerState extends State<MyInputTextAnswer> {
       type: MyTextFieldType.text,
       controller: _textController,
       onChanged: _onTextChanged,
-      inputType: TextInputType.number,
+      inputType: TextInputType.text,
       hintText: 'Type in text',
       maxLines: isMultiline ? 5 : 1,
     );
